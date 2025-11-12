@@ -3,7 +3,42 @@
     { "src": "public/**/*", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/public/$1" }
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    },
+    {
+      "src": "/game",
+      "dest": "/public/game.html"
+    },
+    {
+      "src": "/success",
+      "dest": "/public/success.html"
+    },
+    {
+      "src": "/failed",
+      "dest": "/public/failed.html"
+    },
+    // 🔁 Redirect old .html URLs to clean URLs
+    {
+      "src": "/game\\.html",
+      "status": 301,
+      "headers": { "Location": "/game" }
+    },
+    {
+      "src": "/success\\.html",
+      "status": 301,
+      "headers": { "Location": "/success" }
+    },
+    {
+      "src": "/failed\\.html",
+      "status": 301,
+      "headers": { "Location": "/failed" }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
   ],
   "headers": [
     {
@@ -12,18 +47,6 @@
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://sandbox.sdk.monnify.com; frame-src https://sandbox.sdk.monnify.com; connect-src 'self' https://nicket-backend.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com;"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "geolocation=(), microphone=(), camera=()"
         }
       ]
     }
