@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful - NICKET Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f9fafb;
+      color: #1e293b;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .success-container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .checkmark {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 4px solid #16a34a;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .checkmark::after {
+      content: "";
+      position: absolute;
+      left: 22px;
+      top: 12px;
+      width: 25px;
+      height: 45px;
+      border-right: 4px solid #16a34a;
+      border-bottom: 4px solid #16a34a;
+      transform: rotate(45deg);
+      animation: checkmark 0.4s ease forwards;
+    }
+
+    @keyframes checkmark {
+      from { opacity: 0; transform: rotate(45deg) scale(0.5); }
+      to { opacity: 1; transform: rotate(45deg) scale(1); }
+    }
+
+    h1 {
+      color: #16a34a;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #475569;
+      font-size: 15px;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      background: #2563eb;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #1e40af;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-container">
+    <div class="checkmark"></div>
+    <h1>Payment Successful!</h1>
+    <p>🎉 Your entry for <strong id="eventName"></strong> has been confirmed.<br>
+    Best of luck in the game!</p>
+    <button class="btn" id="returnHome">Return Home</button>
+  </div>
+
+  <script>
+    // Retrieve event info from localStorage
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    document.getElementById("eventName").textContent = userData.eventValue || "your selected event";
+
+    // Return home button
+    document.getElementById("returnHome").addEventListener("click", () => {
+      localStorage.removeItem("selectedNumbers");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
