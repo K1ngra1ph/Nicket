@@ -19,7 +19,6 @@
       "src": "/failed",
       "dest": "/public/failed.html"
     },
-    // 🔁 Redirect old .html URLs to clean URLs
     {
       "src": "/game\\.html",
       "status": 301,
