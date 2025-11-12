@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://sandbox.sdk.monnify.com;
+  frame-src https://sandbox.sdk.monnify.com;
+  connect-src 'self' https://nicket-backend.onrender.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+ ">
+  <title>NICKET Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://sandbox.sdk.monnify.com/plugin/monnify.js"></script>
+
+  <style>
+    :root {
+      --bg: #fff9fc;
+      --text: #1e293b;
+      --accent: #2563eb;
+      --accent-dark: #1e40af;
+      --danger: #dc2626;
+      --danger-dark: #b91c1c;
+      --success: #16a34a;
+      --card: #ffffff;
+    }
+
+    body.dark {
+      --bg: #2c2c2c;
+      --text: #e2e8f0;
+      --accent: #3b82f6;
+      --accent-dark: #1d4ed8;
+      --danger: #ef4444;
+      --danger-dark: #b91c1c;
+      --success: #22c55e;
+      --card: #1e293b;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: var(--bg);
+      padding: 30px;
+      text-align: center;
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .logo {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      width: 120px;
+      height: auto;
+      z-index: 2000;
+    }
+
+    h1 {
+      color: var(--accent-dark);
+      margin-bottom: 10px;
+    }
+
+    #themeToggle {
+      position: fixed;
+      top: 20px;
+      right: 25px;
+      background: transparent;
+      color: var(--accent-dark);
+      border: 2px solid var(--accent-dark);
+      border-radius: 20px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    #themeToggle:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    #numberGrid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 10px;
+      justify-items: center;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+
+    .number-box {
+      width: 55px;
+      height: 55px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .number-box:hover {
+      background: var(--accent-dark);
+      transform: scale(1.05);
+    }
+
+    .number-box.disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #selectedNumbers {
+      margin-top: 25px;
+      padding: 15px;
+      background: var(--card);
+      border-radius: 10px;
+      display: inline-block;
+      min-width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #selectedNumbers span {
+      display: inline-block;
+      margin: 5px;
+      background: var(--success);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    #totalValue {
+      margin-top: 10px;
+      font-weight: 600;
+      color: var(--accent-dark);
+    }
+
+    #clearBtn, #submitBtn {
+      margin-top: 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 25px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    #clearBtn {
+      background: var(--danger);
+      margin-left: 10px;
+    }
+
+    #clearBtn:hover {
+      background: var(--danger-dark);
+    }
+
+    #submitBtn:hover {
+      background: var(--accent-dark);
+    }
+
+    #confirmModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .modal-content {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 25px;
+      max-width: 420px;
+      text-align: center;
+      animation: popIn 0.3s ease;
+      position: relative;
+      color: var(--text);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 18px;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .modal-btn {
+      margin-top: 15px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .confirm {
+      background: var(--success);
+      color: white;
+    }
+
+    .cancel {
+      background: var(--danger);
+      color: white;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <img src="assets/images/nicket-logo.png" alt="Nicket Logo" class="logo">
+
+  <button id="themeToggle">🌙</button>
+  <p>Hi, <strong id="userName"></strong>!</p>
+
+  <div id="numberGrid"></div>
+
+  <div id="selectedNumbers">
+    <strong>Your Selections:</strong>
+    <div id="selectedList"></div>
+    <div id="totalValue">Total: ₦0</div>
+  </div>
+
+  <div>
+    <button id="submitBtn">Let's GO!</button>
+    <button id="clearBtn">Clear Picks</button>
+  </div>
+
+  <!-- ✅ Confirmation Modal -->
+  <div id="confirmModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModalBtn">×</span>
+      <h3>Confirm your details are correct.</h3>
+      <div id="confirmDetails" style="text-align:left; margin-top:10px;"></div>
+      <div style="margin-top:20px;">
+        <button class="modal-btn confirm" id="confirmPaymentBtn">Confirm</button>
+        <button class="modal-btn cancel" id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ Theme Toggle
+    const themeToggle = document.getElementById("themeToggle");
+    function setTheme(darkMode) {
+      document.body.classList.toggle("dark", darkMode);
+      localStorage.setItem("theme", darkMode ? "dark" : "light");
+      themeToggle.textContent = darkMode ? "☀️" : "🌙";
+    }
+    themeToggle.addEventListener("click", () => setTheme(!document.body.classList.contains("dark")));
+    if (localStorage.getItem("theme") === "dark") setTheme(true);
+
+    // ✅ Retrieve User Data (from localStorage)
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    if (!userData.name) {
+      alert("Please register first before playing the game!");
+      window.location.href = "index.html";
+    }
+    const { name, email, phone, eventValue } = userData;
+    document.getElementById("userName").textContent = name;
+
+    // ✅ GRID & SELECTION
+    const grid = document.getElementById("numberGrid");
+    const selectedList = document.getElementById("selectedList");
+    const totalValueEl = document.getElementById("totalValue");
+    const submitBtn = document.getElementById("submitBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const confirmModal = document.getElementById("confirmModal");
+    const confirmDetails = document.getElementById("confirmDetails");
+    const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+
+    const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i + 1, globalCount: 0 }));
+    const selectedNumbers = [];
+
+    function renderGrid() {
+      grid.innerHTML = "";
+      numbers.forEach((item) => {
+        const box = document.createElement("div");
+        box.classList.add("number-box");
+        box.textContent = item.number;
+
+        if (item.globalCount >= 10) {
+          box.classList.add("disabled");
+        } else {
+          box.addEventListener("click", () => handleSelect(item));
+        }
+
+        grid.appendChild(box);
+      });
+    }
+
+    function handleSelect(item) {
+      if (item.globalCount >= 10) return;
+      selectedNumbers.push(item.number);
+      item.globalCount++;
+      updateSelectedList();
+      renderGrid();
+    }
+
+    function updateSelectedList() {
+      selectedList.innerHTML = "";
+      selectedNumbers.forEach((num) => {
+        const tag = document.createElement("span");
+        tag.textContent = num;
+        selectedList.appendChild(tag);
+      });
+      const totalValue = selectedNumbers.length * 1000;
+      totalValueEl.textContent = `Total: ₦${totalValue.toLocaleString()}`;
+    }
+
+    clearBtn.addEventListener("click", () => {
+      selectedNumbers.length = 0;
+      updateSelectedList();
+      renderGrid();
+    });
+
+    // ✅ Confirmation Modal
+    submitBtn.addEventListener("click", () => {
+      if (selectedNumbers.length === 0) {
+        alert("⚠️ Please select at least one number!");
+        return;
+      }
+      const totalValue = selectedNumbers.length * 1000;
+      confirmDetails.innerHTML = `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Event:</strong> ${eventValue}</p>
+        <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
+        <p><strong>Total:</strong> ₦${totalValue.toLocaleString()}</p>
+      `;
+      confirmModal.style.display = "flex";
+    });
+
+    closeModalBtn.onclick = () => confirmModal.style.display = "none";
+    cancelBtn.onclick = () => confirmModal.style.display = "none";
+
+    // ✅ Confirm & Start Payment
+    confirmPaymentBtn.addEventListener("click", async () => {
+      confirmModal.style.display = "none";
+      const amount = selectedNumbers.length * 1000;
+      if (!name || !email || !phone) {
+        alert("User info missing - please re-register before payment");
+        window.location.href = "index.html";
+        return;
+      }
+
+      try {
+        // 🔗 Get contract code from backend (Render)
+        const res = await fetch("https://nicket-backend.onrender.com/api/v1/merchant/contract-code");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Backend Error");
+
+        const reference = "NICKET-" + Date.now();
+
+        window.MonnifySDK.initialize({
+          amount,
+          currency: "NGN",
+          reference,
+          customerFullName: name,
+          customerEmail: email,
+          customerPhoneNumber: phone,
+          apiKey: "MK_TEST_R4WRNJDRL7", // test key
+          contractCode: data.contractCode || "8779904402",
+          paymentDescription: `Payment for ${eventValue}`,
+          isTestMode: true,
+          redirectUrl: "https://nicketvip.web.app/success.html",
+          metaData: { event: eventValue, selectedNumbers, playerName: name },
+          onComplete: (response) => {
+            if (response?.paymentStatus?.toLowerCase() === "paid") {
+              window.location.href = "success.html";
+            } else {
+              window.location.href = "failed.html";
+            }
+          },
+          onClose: () => console.log("Payment modal closed."),
+        });
+      } catch (error) {
+        console.error("Payment Error:", error);
+        alert("Unable to start payment. Please try again later.");
+      }
+    });
+
+    renderGrid();
+  </script>
+</body>
+</html>
