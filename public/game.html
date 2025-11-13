@@ -258,7 +258,6 @@
   </div>
 
   <script>
-    // ✅ Theme Toggle
     const themeToggle = document.getElementById("themeToggle");
     function setTheme(darkMode) {
       document.body.classList.toggle("dark", darkMode);
@@ -268,7 +267,6 @@
     themeToggle.addEventListener("click", () => setTheme(!document.body.classList.contains("dark")));
     if (localStorage.getItem("theme") === "dark") setTheme(true);
 
-    // ✅ Retrieve User Data (from localStorage)
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
     if (!userData.name) {
       alert("Please register first before playing the game!");
@@ -277,7 +275,6 @@
     const { name, email, phone, eventValue } = userData;
     document.getElementById("userName").textContent = name;
 
-    // ✅ GRID & SELECTION
     const grid = document.getElementById("numberGrid");
     const selectedList = document.getElementById("selectedList");
     const totalValueEl = document.getElementById("totalValue");
@@ -366,8 +363,7 @@
       }
 
       try {
-        // 🔗 Get contract code from backend (Render)
-        const res = await fetch("https://nicket-backend.onrender.com/api/v1/merchant/contract-code");
+        const res = await fetch("https://nicket-backend.onrender.com/api/merchant/contract-code");
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Backend Error");
 
@@ -380,7 +376,7 @@
           customerFullName: name,
           customerEmail: email,
           customerPhoneNumber: phone,
-          apiKey: "MK_TEST_R4WRNJDRL7", // test key
+          apiKey: "MK_TEST_R4WRNJDRL7",
           contractCode: data.contractCode || "8779904402",
           paymentDescription: `Payment for ${eventValue}`,
           isTestMode: true,
