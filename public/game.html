@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-inline' https://sandbox.sdk.monnify.com;
-  frame-src https://sandbox.sdk.monnify.com;
-  connect-src 'self' https://nicket-backend.onrender.com https://sandbox.sdk.monnify.com;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src https://fonts.gstatic.com;
- ">
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://sandbox.sdk.monnify.com;
+    frame-src https://sandbox.sdk.monnify.com;
+    connect-src 'self' https://nicket-backend.onrender.com https://sandbox.sdk.monnify.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    img-src 'self' data:;
+  ">
   <title>NICKET Games</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://sandbox.sdk.monnify.com/plugin/monnify.js"></script>
@@ -244,7 +245,7 @@
     <button id="clearBtn">Clear Picks</button>
   </div>
 
-  <!-- ✅ Confirmation Modal -->
+  <!-- Confirmation Modal -->
   <div id="confirmModal">
     <div class="modal-content">
       <span class="close-modal" id="closeModalBtn">×</span>
@@ -331,7 +332,6 @@
       renderGrid();
     });
 
-    // ✅ Confirmation Modal
     submitBtn.addEventListener("click", () => {
       if (selectedNumbers.length === 0) {
         alert("⚠️ Please select at least one number!");
@@ -352,48 +352,52 @@
     closeModalBtn.onclick = () => confirmModal.style.display = "none";
     cancelBtn.onclick = () => confirmModal.style.display = "none";
 
-    // ✅ Confirm & Start Payment
     confirmPaymentBtn.addEventListener("click", async () => {
       confirmModal.style.display = "none";
-      const amount = selectedNumbers.length * 1000;
+      const totalAmount = selectedNumbers.length * 1000;
       if (!name || !email || !phone) {
-        alert("User info missing - please re-register before payment");
+        alert("User info is Missing. Please register again.");
         window.location.href = "index.html";
         return;
       }
 
       try {
         const res = await fetch("https://nicket-backend.onrender.com/api/merchant/contract-code");
+        if (!res.ok) throw new Error("Backend error");
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Backend Error");
+
+        if (!data.contractCode) {
+          alert("Error loading payment settings. Try again.");
+          return;
+        }
 
         const reference = "NICKET-" + Date.now();
 
         window.MonnifySDK.initialize({
-          amount,
+          amount: totalAmount,
           currency: "NGN",
           reference,
           customerFullName: name,
           customerEmail: email,
           customerPhoneNumber: phone,
           apiKey: "MK_TEST_R4WRNJDRL7",
-          contractCode: data.contractCode || "8779904402",
-          paymentDescription: `Payment for ${eventValue}`,
+          contractCode: data.contractCode,
+          paymentDescription: `Payment for NICKET Game - ${eventValue}`,
           isTestMode: true,
           redirectUrl: "https://nicketvip.web.app/success.html",
           metaData: { event: eventValue, selectedNumbers, playerName: name },
           onComplete: (response) => {
             if (response?.paymentStatus?.toLowerCase() === "paid") {
-              window.location.href = "success.html";
+              alert("✅ Payment Successful!");
             } else {
-              window.location.href = "failed.html";
+              alert("❌ Payment Failed or Cancelled.");
             }
           },
-          onClose: () => console.log("Payment modal closed."),
+          onClose: () => console.log("Payment closed"),
         });
       } catch (error) {
-        console.error("Payment Error:", error);
-        alert("Unable to start payment. Please try again later.");
+        console.error("Payment initialization error:", error);
+        alert("❌ Unable to initialize payment. Please try again later.");
       }
     });
 
