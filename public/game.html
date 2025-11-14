@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' https://sandbox.sdk.monnify.com;
-    frame-src https://sandbox.sdk.monnify.com;
-    connect-src 'self' https://nicket-backend.onrender.com https://sandbox.sdk.monnify.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src https://fonts.gstatic.com;
-    img-src 'self' data:;
-  ">
+  <<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://sdk.monnify.com https://sandbox.sdk.monnify.com;
+  frame-src https://sdk.monnify.com https://sandbox.sdk.monnify.com;
+  connect-src 'self' https://nicket-backend.onrender.com https://sdk.monnify.com https://sandbox.sdk.monnify.com https://api.monnify.com https://api-sandbox.monnify.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src 'self' data:;
+">
   <title>NICKET Games</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://sandbox.sdk.monnify.com/plugin/monnify.js"></script>
+  <script type="text/javascript" src="https://sandbox.sdk.monnify.com/plugin/monnify.js"></script>
 
   <style>
     :root {
@@ -57,11 +57,6 @@
       z-index: 2000;
     }
 
-    h1 {
-      color: var(--accent-dark);
-      margin-bottom: 10px;
-    }
-
     #themeToggle {
       position: fixed;
       top: 20px;
@@ -85,7 +80,6 @@
       display: grid;
       grid-template-columns: repeat(10, 1fr);
       gap: 10px;
-      justify-items: center;
       max-width: 600px;
       margin: 20px auto;
     }
@@ -126,11 +120,10 @@
     }
 
     #selectedNumbers span {
-      display: inline-block;
       margin: 5px;
       background: var(--success);
-      color: white;
       padding: 8px 12px;
+      color: white;
       border-radius: 8px;
       font-weight: 600;
     }
@@ -167,6 +160,7 @@
       background: var(--accent-dark);
     }
 
+    /* Modal */
     #confirmModal {
       display: none;
       position: fixed;
@@ -184,10 +178,10 @@
       padding: 25px;
       max-width: 420px;
       text-align: center;
-      animation: popIn 0.3s ease;
       position: relative;
       color: var(--text);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      animation: popIn 0.3s ease;
     }
 
     @keyframes popIn {
@@ -199,35 +193,15 @@
       position: absolute;
       top: 10px;
       right: 15px;
-      font-size: 18px;
-      color: var(--text);
+      font-size: 20px;
       cursor: pointer;
-      font-weight: bold;
-    }
-
-    .modal-btn {
-      margin-top: 15px;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .confirm {
-      background: var(--success);
-      color: white;
-    }
-
-    .cancel {
-      background: var(--danger);
-      color: white;
-      margin-left: 10px;
     }
   </style>
 </head>
+
 <body>
-  <img src="assets/images/nicket-logo.png" alt="Nicket Logo" class="logo">
+
+  <img src="assets/images/nicket-logo.png" class="logo">
 
   <button id="themeToggle">🌙</button>
   <p>Hi, <strong id="userName"></strong>!</p>
@@ -240,168 +214,162 @@
     <div id="totalValue">Total: ₦0</div>
   </div>
 
-  <div>
-    <button id="submitBtn">Let's GO!</button>
-    <button id="clearBtn">Clear Picks</button>
-  </div>
+  <button id="submitBtn">Let's GO!</button>
+  <button id="clearBtn">Clear Picks</button>
 
   <!-- Confirmation Modal -->
   <div id="confirmModal">
     <div class="modal-content">
       <span class="close-modal" id="closeModalBtn">×</span>
-      <h3>Confirm your details are correct.</h3>
-      <div id="confirmDetails" style="text-align:left; margin-top:10px;"></div>
-      <div style="margin-top:20px;">
-        <button class="modal-btn confirm" id="confirmPaymentBtn">Confirm</button>
-        <button class="modal-btn cancel" id="cancelBtn">Cancel</button>
-      </div>
+      <h3>Confirm your details</h3>
+      <div id="confirmDetails" style="text-align:left;margin-top:10px;"></div>
+      <button id="confirmPaymentBtn" style="background:#16a34a;color:white;margin-top:15px;padding:10px 18px;border:none;border-radius:6px;font-weight:600;">Confirm</button>
+      <button id="cancelBtn" style="background:#dc2626;color:white;margin-left:10px;padding:10px 18px;border:none;border-radius:6px;font-weight:600;">Cancel</button>
     </div>
   </div>
 
-  <script>
-    const themeToggle = document.getElementById("themeToggle");
-    function setTheme(darkMode) {
-      document.body.classList.toggle("dark", darkMode);
-      localStorage.setItem("theme", darkMode ? "dark" : "light");
-      themeToggle.textContent = darkMode ? "☀️" : "🌙";
+<script>
+/* ========= THEME ========= */
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  themeToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+});
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark");
+  themeToggle.textContent = "☀️";
+}
+
+/* ========= USER DATA ========= */
+const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+if (!userData.name) {
+  alert("Please register first.");
+  window.location.href = "index.html";
+}
+const { name, email, phone, eventValue } = userData;
+document.getElementById("userName").textContent = name;
+
+/* ========= GAME LOGIC ========= */
+const grid = document.getElementById("numberGrid");
+const selectedList = document.getElementById("selectedList");
+const totalValueEl = document.getElementById("totalValue");
+const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
+const selectedNumbers = [];
+
+function renderGrid() {
+  grid.innerHTML = "";
+  numbers.forEach((item) => {
+    const box = document.createElement("div");
+    box.classList.add("number-box");
+    box.textContent = item.number;
+
+    if (item.globalCount >= 10) {
+      box.classList.add("disabled");
+    } else {
+      box.addEventListener("click", () => handleSelect(item));
     }
-    themeToggle.addEventListener("click", () => setTheme(!document.body.classList.contains("dark")));
-    if (localStorage.getItem("theme") === "dark") setTheme(true);
+    grid.appendChild(box);
+  });
+}
 
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    if (!userData.name) {
-      alert("Please register first before playing the game!");
-      window.location.href = "index.html";
+function handleSelect(item) {
+  if (item.globalCount >= 10) return;
+  selectedNumbers.push(item.number);
+  item.globalCount++;
+  updateSelectedList();
+  renderGrid();
+}
+
+function updateSelectedList() {
+  selectedList.innerHTML = "";
+  selectedNumbers.forEach(num => {
+    const tag = document.createElement("span");
+    tag.textContent = num;
+    selectedList.appendChild(tag);
+  });
+  totalValueEl.textContent = `Total: ₦${(selectedNumbers.length * 1000).toLocaleString()}`;
+}
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  selectedNumbers.length = 0;
+  numbers.forEach(n => n.globalCount = 0);
+  updateSelectedList();
+  renderGrid();
+});
+
+/* ========= MODAL ========= */
+const confirmModal = document.getElementById("confirmModal");
+document.getElementById("submitBtn").addEventListener("click", () => {
+  if (selectedNumbers.length === 0) return alert("Select at least one number!");
+
+  const total = selectedNumbers.length * 1000;
+  document.getElementById("confirmDetails").innerHTML = `
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Phone:</strong> ${phone}</p>
+    <p><strong>Event:</strong> ${eventValue}</p>
+    <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
+    <p><strong>Total:</strong> ₦${total.toLocaleString()}</p>
+  `;
+
+  confirmModal.style.display = "flex";
+});
+document.getElementById("closeModalBtn").onclick =
+document.getElementById("cancelBtn").onclick = () => confirmModal.style.display = "none";
+
+/* ========= PAYMENT ========= */
+document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
+  confirmModal.style.display = "none";
+
+  const totalAmount = selectedNumbers.length * 1000;
+
+  try {
+    const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
+    });
+
+    if (!res.ok) throw new Error("Backend error");
+
+    const data = await res.json();
+
+    if (!data.success || !data.data) {
+      return alert("Error: " + (data.error || "Payment init failed"));
     }
-    const { name, email, phone, eventValue } = userData;
-    document.getElementById("userName").textContent = name;
 
-    const grid = document.getElementById("numberGrid");
-    const selectedList = document.getElementById("selectedList");
-    const totalValueEl = document.getElementById("totalValue");
-    const submitBtn = document.getElementById("submitBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const confirmModal = document.getElementById("confirmModal");
-    const confirmDetails = document.getElementById("confirmDetails");
-    const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const cancelBtn = document.getElementById("cancelBtn");
+    const { paymentReference, contractCode } = data.data;
 
-    const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i + 1, globalCount: 0 }));
-    const selectedNumbers = [];
-
-    function renderGrid() {
-      grid.innerHTML = "";
-      numbers.forEach((item) => {
-        const box = document.createElement("div");
-        box.classList.add("number-box");
-        box.textContent = item.number;
-
-        if (item.globalCount >= 10) {
-          box.classList.add("disabled");
+    window.MonnifySDK.initialize({
+      amount: totalAmount,
+      currency: "NGN",
+      reference: paymentReference,
+      customerFullName: name,
+      customerEmail: email,
+      customerPhoneNumber: phone,
+      apiKey: "MK_TEST_R4WRNJDRL7",
+      contractCode: contractCode,
+      paymentDescription: `Payment for Nicket Game - ${eventValue}`,
+      isTestMode: true,
+      metaData: { event: eventValue, selectedNumbers, playerName: name },
+      onComplete: (response) => {
+        if (response?.paymentStatus?.toLowerCase() === "paid") {
+          alert("🎉 Payment Successful!");
         } else {
-          box.addEventListener("click", () => handleSelect(item));
+          alert("❌ Payment Failed or Cancelled.");
         }
-
-        grid.appendChild(box);
-      });
-    }
-
-    function handleSelect(item) {
-      if (item.globalCount >= 10) return;
-      selectedNumbers.push(item.number);
-      item.globalCount++;
-      updateSelectedList();
-      renderGrid();
-    }
-
-    function updateSelectedList() {
-      selectedList.innerHTML = "";
-      selectedNumbers.forEach((num) => {
-        const tag = document.createElement("span");
-        tag.textContent = num;
-        selectedList.appendChild(tag);
-      });
-      const totalValue = selectedNumbers.length * 1000;
-      totalValueEl.textContent = `Total: ₦${totalValue.toLocaleString()}`;
-    }
-
-    clearBtn.addEventListener("click", () => {
-      selectedNumbers.length = 0;
-      updateSelectedList();
-      renderGrid();
+      },
+      onClose: () => console.log("Payment closed")
     });
 
-    submitBtn.addEventListener("click", () => {
-      if (selectedNumbers.length === 0) {
-        alert("⚠️ Please select at least one number!");
-        return;
-      }
-      const totalValue = selectedNumbers.length * 1000;
-      confirmDetails.innerHTML = `
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Event:</strong> ${eventValue}</p>
-        <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
-        <p><strong>Total:</strong> ₦${totalValue.toLocaleString()}</p>
-      `;
-      confirmModal.style.display = "flex";
-    });
+  } catch (err) {
+    console.error(err);
+    alert("Unable to initialize payment. Try again.");
+  }
+});
 
-    closeModalBtn.onclick = () => confirmModal.style.display = "none";
-    cancelBtn.onclick = () => confirmModal.style.display = "none";
+renderGrid();
+</script>
 
-    confirmPaymentBtn.addEventListener("click", async () => {
-      confirmModal.style.display = "none";
-      const totalAmount = selectedNumbers.length * 1000;
-      if (!name || !email || !phone) {
-        alert("User info is Missing. Please register again.");
-        window.location.href = "index.html";
-        return;
-      }
-
-      try {
-        const res = await fetch("https://nicket-backend.onrender.com/api/merchant/contract-code");
-        if (!res.ok) throw new Error("Backend error");
-        const data = await res.json();
-
-        if (!data.contractCode) {
-          alert("Error loading payment settings. Try again.");
-          return;
-        }
-
-        const reference = "NICKET-" + Date.now();
-
-        window.MonnifySDK.initialize({
-          amount: totalAmount,
-          currency: "NGN",
-          reference,
-          customerFullName: name,
-          customerEmail: email,
-          customerPhoneNumber: phone,
-          apiKey: "MK_TEST_R4WRNJDRL7",
-          contractCode: data.contractCode,
-          paymentDescription: `Payment for NICKET Game - ${eventValue}`,
-          isTestMode: true,
-          redirectUrl: "https://nicketvip.web.app/success.html",
-          metaData: { event: eventValue, selectedNumbers, playerName: name },
-          onComplete: (response) => {
-            if (response?.paymentStatus?.toLowerCase() === "paid") {
-              alert("✅ Payment Successful!");
-            } else {
-              alert("❌ Payment Failed or Cancelled.");
-            }
-          },
-          onClose: () => console.log("Payment closed"),
-        });
-      } catch (error) {
-        console.error("Payment initialization error:", error);
-        alert("❌ Unable to initialize payment. Please try again later.");
-      }
-    });
-
-    renderGrid();
-  </script>
 </body>
 </html>
