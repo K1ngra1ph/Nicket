@@ -348,7 +348,7 @@ document.getElementById("confirmPaymentBtn").addEventListener("click", async () 
       customerEmail: email,
       customerPhoneNumber: phone,
       apiKey: "MK_TEST_R4WRNJDRL7",
-      contractCode: contractCode,
+      contractCode: data.contractCode,
       paymentDescription: `Payment for Nicket Game - ${eventValue}`,
       isTestMode: true,
       metaData: { event: eventValue, selectedNumbers, playerName: name },
