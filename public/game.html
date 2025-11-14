@@ -4,17 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-inline' https://sdk.monnify.com https://sandbox.sdk.monnify.com;
-  frame-src https://sdk.monnify.com https://sandbox.sdk.monnify.com;
-  connect-src 'self' https://nicket-backend.onrender.com https://sdk.monnify.com https://sandbox.sdk.monnify.com https://api.monnify.com https://api-sandbox.monnify.com;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src https://fonts.gstatic.com;
-  img-src 'self' data:;
-">
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://sandbox.sdk.monnify.com https://sdk.monnify.com;
+    frame-src https://sandbox.sdk.monnify.com https://sdk.monnify.com https://sandbox.monnify.com https://sdk.monnify.com;
+    connect-src 'self' https://nicket-backend.onrender.com https://sandbox.sdk.monnify.com https://sdk.monnify.com https://sandbox.monnify.com https://api.monnify.com https://api-sandbox.monnify.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src https://fonts.gstatic.com;
+    img-src 'self' data:;
+  ">
   <title>NICKET Games</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script type="text/javascript" src="https://sandbox.sdk.monnify.com/plugin/monnify.js"></script>
 
   <style>
     :root {
@@ -318,6 +317,20 @@ document.getElementById("closeModalBtn").onclick =
 document.getElementById("cancelBtn").onclick = () => confirmModal.style.display = "none";
 
 /* ========= PAYMENT ========= */
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      return resolve ();
+    }
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error ('Script load error: ' + src));
+    document.head.appendChild(s);
+  });
+}
+  
 document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
   confirmModal.style.display = "none";
 
@@ -330,40 +343,75 @@ document.getElementById("confirmPaymentBtn").addEventListener("click", async () 
       body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
     });
 
-    if (!res.ok) throw new Error("Backend error");
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      console.error('Backend non-OK response:', res.status, txt);
+      throw new Error('Backend error');
+    }
 
     const data = await res.json();
 
-    if (!data.success || !data.data) {
-      return alert("Error: " + (data.error || "Payment init failed"));
+    if (!data.success) {
+      console.error('Payment init failed', data);
+      alert("Payment initialization failed: " + (data.error?.message || data.error || data.message || 'Unknown'));
+      return;
     }
 
-    const { paymentReference, contractCode } = data.data;
+    const checkoutUrl = data.data?.checkoutUrl || data.data?.checkout_url || data.checkoutUrl || data.data?.checkouturl;
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
+      return;
+    }
+
+    const apiKey = data.data?.apiKey || data.data?.api_key;
+    const paymentReference = data.data?.paymentReference || data.data?.payment_reference;
+    const contractCode = data.contractCode || data.contract_code || data.data?.contractCode;
+
+    if (!apiKey || !paymentReference || !contractCode) {
+      console.error('Missing values for SDK flow', { apiKey, paymentReference, contractCode, data });
+      alert("Payment initialization failed: missing configuration.");
+      return;
+    }
+
+    await loadScript('https://sandbox.sdk.monnify.com/plugin/monnify.js');
+    const isTestMode = typeof apiKey === 'string' && apiKey.startsWith('MK_TEST');
+
+    if (!window.MonnifySDK || typeof window.MonnifySDK.initialize !== 'function') {
+      console.error('Monnify SDK not available after load');
+      alert('Payment service unavailable. Try again later.');
+      return;
+    }
 
     window.MonnifySDK.initialize({
       amount: totalAmount,
       currency: "NGN",
       reference: paymentReference,
-      customerFullName: name,
-      customerEmail: email,
-      customerPhoneNumber: phone,
-      apiKey: "MK_TEST_R4WRNJDRL7",
-      contractCode: data.contractCode,
+      customerFullName: name || '',
+      customerEmail: email || '',
+      customerPhoneNumber: phone || '',
+      apiKey,
+      contractCode,
       paymentDescription: `Payment for Nicket Game - ${eventValue}`,
-      isTestMode: true,
+      isTestMode,
       metaData: { event: eventValue, selectedNumbers, playerName: name },
+      
+      onLoadStart: function() { console.log('Monnify SDK load started'); },
+      onLoadComplete: function() { console.log('Monnify SDK load complete'); },
+      
       onComplete: (response) => {
         if (response?.paymentStatus?.toLowerCase() === "paid") {
           alert("🎉 Payment Successful!");
+          window.location.href = '/success.html';
         } else {
           alert("❌ Payment Failed or Cancelled.");
+          window.location.href = '/failed.html';
         }
       },
       onClose: () => console.log("Payment closed")
     });
 
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error("Payment Error:", error);
     alert("Unable to initialize payment. Try again.");
   }
 });
