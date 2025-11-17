@@ -3,39 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpinPay | Payment Processing</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Verifying Payment...</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="payment-container text-center">
-        <div class="spinner animate-spin duration-2000">
-            <div class="spinner-circle bg-indigo-500"></div>
-            <div class="spinner-circle bg-purple-500"></div>
-            <div class="spinner-circle bg-pink-500"></div>
-        </div>
-        <h1 class="text-3xl font-bold mt-8 text-gray-800">Processing Your Payment</h1>
-        <p class="text-gray-600 mt-2">Please wait while we verify your transaction</p>
-        <div class="status-indicator mt-6 hidden">
-            <div class="flex justify-center items-center space-x-2">
-                <div class="dot animate-pulse"></div>
-                <div class="dot animate-pulse delay-100"></div>
-                <div class="dot animate-pulse delay-200"></div>
-            </div>
-        </div>
+    <div class="text-center">
+        <div class="animate-spin h-16 w-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+        <h1 class="text-xl font-bold mt-6 text-gray-700">Verifying Payment...</h1>
+        <p class="text-gray-500 mt-2">Please wait</p>
     </div>
 
-    <script src="script.js"></script>
     <script>
-        feather.replace();
-        // Simulate payment verification (replace with actual API call)
-        setTimeout(() => {
-            // Randomly redirect to success or failed page for demo
-            const isSuccess = Math.random() > 0.3;
-            window.location.href = isSuccess ? 'success.html' : 'failed.html';
-        }, 4000);
+        async function verifyPayment() {
+            const params = new URLSearchParams(window.location.search);
+            const paymentReference = params.get("paymentReference");
+
+            if (!paymentReference) {
+                window.location.href = "failed.html";
+                return;
+            }
+
+            try {
+                const res = await fetch("https://nicket-backend.onrender.com/api/payments/verify-payment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ paymentReference })
+                });
+
+                const data = await res.json();
+
+                if (data.success && data.data?.paymentStatus === "PAID") {
+                    window.location.href = "success.html";
+                } else {
+                    window.location.href = "failed.html";
+                }
+
+            } catch (error) {
+                console.error("Verification error:", error);
+                window.location.href = "failed.html";
+            }
+        }
+
+        verifyPayment();
     </script>
 </body>
 </html>
