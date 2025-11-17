@@ -6,6 +6,7 @@
     <title>Verifying Payment...</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="text-center">
         <div class="animate-spin h-16 w-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
@@ -16,9 +17,10 @@
     <script>
         async function verifyPayment() {
             const params = new URLSearchParams(window.location.search);
-            const paymentReference = params.get("paymentReference");
 
-            if (!paymentReference) {
+            const transactionReference = params.get("transactionReference");
+
+            if (!transactionReference) {
                 window.location.href = "failed.html";
                 return;
             }
@@ -27,12 +29,14 @@
                 const res = await fetch("https://nicket-backend.onrender.com/api/payments/verify-payment", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ paymentReference })
+                    body: JSON.stringify({ transactionReference })
                 });
 
                 const data = await res.json();
 
-                if (data.success && data.data?.paymentStatus === "PAID") {
+                const status = data?.data?.paymentStatus?.toUpperCase();
+
+                if (status === "PAID") {
                     window.location.href = "success.html";
                 } else {
                     window.location.href = "failed.html";
