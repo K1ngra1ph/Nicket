@@ -34,9 +34,7 @@
 
                 const data = await res.json();
 
-                const status = data?.data?.paymentStatus?.toUpperCase();
-
-                if (status === "PAID") {
+                if (data.success && data.data?.status?.toUpperCase() === "PAID") {
                     window.location.href = "success.html";
                 } else {
                     window.location.href = "failed.html";
