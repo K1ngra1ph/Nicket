@@ -398,10 +398,28 @@ document.getElementById("confirmPaymentBtn").addEventListener("click", async () 
       onLoadStart: function() { console.log('Monnify SDK load started'); },
       onLoadComplete: function() { console.log('Monnify SDK load complete'); },
       
-      onComplete: (response) => {
+      onComplete: async (response) => {
         if (response?.paymentStatus?.toLowerCase() === "paid") {
-          alert("🎉 Payment Successful!");
-          window.location.href = '/success.html';
+          const transactionReference = response.transactionReference;
+          try {
+             const verifyRes = await fetch("https://nicket-backend.onrender.com/api/payments/verify-payment", {
+               method: "POST",
+               headers: { "Content-Type": "application/json" },
+               body: JSON.stringify({ transactionReference })
+             });
+            const verifyData = await verifyRes.json();
+            if (verifyData.success && verifyData.data?.status?.toUpperCase() === "PAID") {
+              alert("🎉 Payment Successful!");
+              window.location.href = '/success.html';
+            } else {
+              alert("❌ Payment Failed or Cancelled.");
+              window.location.href = '/failed.html';
+            }
+          } catch (err) {
+            console.error("Verification error:", err);
+            alert("❌ Payment Verification Failed.");
+            window.location.href = '/failed.html';
+          }
         } else {
           alert("❌ Payment Failed or Cancelled.");
           window.location.href = '/failed.html';
