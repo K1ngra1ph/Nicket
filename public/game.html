@@ -14,6 +14,7 @@
   ">
   <title>NICKET Games</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://sandbox.sdk.monnify.com/plugin/monnify.js" as="script">
 
   <style>
     :root {
@@ -235,7 +236,9 @@ themeToggle.addEventListener("click", () => {
   themeToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
 });
 if (localStorage.getItem("theme") === "dark") {
-  document.body.classList.add("dark");
+  document.body.classList.add("dark")
+    ? localStorage.setItem("theme", "dark")
+    : localStorage.removeItem("theme");
   themeToggle.textContent = "☀️";
 }
 
@@ -317,119 +320,72 @@ document.getElementById("closeModalBtn").onclick =
 document.getElementById("cancelBtn").onclick = () => confirmModal.style.display = "none";
 
 /* ========= PAYMENT ========= */
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      return resolve ();
-    }
-    const s = document.createElement('script');
-    s.src = src;
-    s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error ('Script load error: ' + src));
-    document.head.appendChild(s);
-  });
-}
-  
 document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
   confirmModal.style.display = "none";
 
   const totalAmount = selectedNumbers.length * 1000;
 
   try {
+    // 1. Call your backend to initiate payment
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
     });
 
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      console.error('Backend non-OK response:', res.status, txt);
-      throw new Error('Backend error');
-    }
-
+    if (!res.ok) throw new Error(`Backend error: ${res.status}`);
     const data = await res.json();
+    if (!data.success) throw new Error(data.error?.message || "Payment initiation failed");
 
-    if (!data.success) {
-      console.error('Payment init failed', data);
-      alert("Payment initialization failed: " + (data.error?.message || data.error || data.message || 'Unknown'));
-      return;
-    }
-
-    const checkoutUrl = data.data?.checkoutUrl || data.data?.checkout_url || data.checkoutUrl || data.data?.checkouturl;
+    // 2. Check if Monnify returned a checkoutUrl (redirect flow)
+    const checkoutUrl = data.data?.checkoutUrl || data.data?.checkout_url;
     if (checkoutUrl) {
-      window.location.href = checkoutUrl;
+      window.location.href = checkoutUrl; // Option A: redirect immediately
       return;
     }
 
-    const apiKey = data.data?.apiKey || data.data?.api_key;
-    const paymentReference = data.data?.paymentReference || data.data?.payment_reference;
-    const contractCode = data.contractCode || data.contract_code || data.data?.contractCode;
-
+    // 3. Otherwise, use SDK flow
+    const { apiKey, paymentReference, contractCode } = data.data;
     if (!apiKey || !paymentReference || !contractCode) {
-      console.error('Missing values for SDK flow', { apiKey, paymentReference, contractCode, data });
-      alert("Payment initialization failed: missing configuration.");
-      return;
+      throw new Error("Missing payment configuration for SDK flow");
     }
 
-    await loadScript('https://sandbox.sdk.monnify.com/plugin/monnify.js');
-    const isTestMode = typeof apiKey === 'string' && apiKey.startsWith('MK_TEST');
-
-    if (!window.MonnifySDK || typeof window.MonnifySDK.initialize !== 'function') {
-      console.error('Monnify SDK not available after load');
-      alert('Payment service unavailable. Try again later.');
-      return;
+    // 4. Load SDK only once
+    if (!window.MonnifySDK) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://sandbox.sdk.monnify.com/plugin/monnify.js";
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error("Failed to load Monnify SDK"));
+        document.head.appendChild(s);
+      });
     }
 
+    const isTestMode = apiKey.startsWith("MK_TEST");
+
+    // 5. Initialize Monnify SDK
     window.MonnifySDK.initialize({
       amount: totalAmount,
       currency: "NGN",
       reference: paymentReference,
-      customerFullName: name || '',
-      customerEmail: email || '',
-      customerPhoneNumber: phone || '',
+      customerFullName: name || "",
+      customerEmail: email || "",
+      customerPhoneNumber: phone || "",
       apiKey,
       contractCode,
       paymentDescription: `Payment for Nicket Game - ${eventValue}`,
       isTestMode,
       metaData: { event: eventValue, selectedNumbers, playerName: name },
-      
-      onLoadStart: function() { console.log('Monnify SDK load started'); },
-      onLoadComplete: function() { console.log('Monnify SDK load complete'); },
-      
-      onComplete: async (response) => {
-        if (response?.paymentStatus?.toLowerCase() === "paid") {
-          const transactionReference = response.transactionReference;
-          try {
-             const verifyRes = await fetch("https://nicket-backend.onrender.com/api/payments/verify-payment", {
-               method: "POST",
-               headers: { "Content-Type": "application/json" },
-               body: JSON.stringify({ transactionReference })
-             });
-            const verifyData = await verifyRes.json();
-            if (verifyData.success && verifyData.data?.status?.toUpperCase() === "PAID") {
-              alert("🎉 Payment Successful!");
-              window.location.href = '/success.html';
-            } else {
-              alert("❌ Payment Failed or Cancelled.");
-              window.location.href = '/failed.html';
-            }
-          } catch (err) {
-            console.error("Verification error:", err);
-            alert("❌ Payment Verification Failed.");
-            window.location.href = '/failed.html';
-          }
-        } else {
-          alert("❌ Payment Failed or Cancelled.");
-          window.location.href = '/failed.html';
-        }
-      },
-      onClose: () => console.log("Payment closed")
+
+      onLoadStart: () => console.log("Monnify SDK load started"),
+      onLoadComplete: () => console.log("Monnify SDK load complete"),
+      onComplete: (response) => console.log("Payment completed:", response),
+      onClose: () => console.log("Payment window closed")
     });
 
-  } catch (error) {
-    console.error("Payment Error:", error);
+  } catch (err) {
+    console.error("Payment error:", err);
     alert("Unable to initialize payment. Try again.");
   }
 });
