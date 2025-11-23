@@ -179,11 +179,29 @@
           onLoadComplete:()=>console.log("SDK loaded"),
 
           onComplete:(response)=>{
-            const tr = response.transactionReference||response.paymentReference;
-            if(tr) window.location.href=`https://nicket-lilac.vercel.app/verify?transactionReference=${encodeURIComponent(tr)}`;
-            else alert("Payment completed but transaction reference missing. Contact support.");
+            console.log("Payment completed:", response);
+
+            const trx =
+              response?.transactionReference ||
+              response?.paymentReference ||
+              response?.payment?.transactionReference;
+
+            if (!trx) {
+              alert("Payment completed but no transaction reference returned.");
+              window.location.href = "/failed";
+              return;
+            }
+
+            window.location.href =
+              `/verify?transactionReference=${encodeURIComponent(trx)}`;
           },
           onClose:()=>console.log("Payment window closed by user")
+
+          setTimeout(() =>{
+            if (!window.__monnifyRedirected) {
+              window.location.href = "/failed";
+            }
+          }, 500);
         });
 
       } catch(err){
@@ -192,6 +210,7 @@
       }
     });
 
+    window.__monnifyRedirected = false;
     renderGrid();
   </script>
 </body>
