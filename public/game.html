@@ -171,7 +171,6 @@
 
     title.textContent = success ? "Payment Successful!" : "Payment Failed!";
     msg.textContent = message || "";
-
     iconDiv.innerHTML = success ? '✅' : '❌';
     iconDiv.style.color = success ? '#22c55e' : '#ef4444';
 
@@ -221,7 +220,6 @@
         `;
         showPaymentResult(success, message);
 
-        // Clean URL to prevent modal repeating on reload
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (err) {
         console.error("Verification error:", err);
@@ -265,37 +263,40 @@
         isTestMode,
         metaData: { event: eventValue, selectedNumbers, playerName: name },
 
-        onLoadStart: () => console.log("SDK loading started"),
-        onLoadComplete: () => console.log("SDK loaded"),
+        onLoadStart: function() { console.log("SDK loading started"); },
+        onLoadComplete: function() { console.log("SDK loaded"); },
 
-        onComplete: async (response) => {
+        onComplete: function(response) {
           const tr = response.transactionReference || response.paymentReference;
           if (!tr) {
             showPaymentResult(false, "Payment completed but transaction reference missing. Contact support.");
             return;
           }
 
-          try {
-            const verifyRes = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(tr)}`);
-            if (!verifyRes.ok) throw new Error(`Verification failed: ${verifyRes.status}`);
-            const verifyData = await verifyRes.json();
-            if (!verifyData.success) throw new Error(verifyData.error?.message || "Payment verification failed");
+          fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(tr)}`)
+            .then(res => {
+              if (!res.ok) throw new Error(`Verification failed: ${res.status}`);
+              return res.json();
+            })
+            .then(verifyData => {
+              if (!verifyData.success) throw new Error(verifyData.error?.message || "Payment verification failed");
 
-            const info = verifyData.data;
-            const success = info.status === "SUCCESSFUL";
-            const message = `
-              Payment Reference: ${info.paymentReference}\n
-              Amount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\n
-              Status: ${info.status}
-            `;
-            showPaymentResult(success, message);
-          } catch (err) {
-            console.error("Verification error:", err);
-            showPaymentResult(false, "Unable to verify payment. Try again.");
-          }
+              const info = verifyData.data;
+              const success = info.status === "SUCCESSFUL";
+              const message = `
+                Payment Reference: ${info.paymentReference}\n
+                Amount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\n
+                Status: ${info.status}
+              `;
+              showPaymentResult(success, message);
+            })
+            .catch(err => {
+              console.error("Verification error:", err);
+              showPaymentResult(false, "Unable to verify payment. Try again.");
+            });
         },
 
-        onClose: () => console.log("Payment window closed by user")
+        onClose: function() { console.log("Payment window closed by user"); }
       });
 
     } catch (err) {
@@ -305,6 +306,6 @@
   });
 
   renderGrid();
-</script>
+  </script>
 </body>
 </html>
