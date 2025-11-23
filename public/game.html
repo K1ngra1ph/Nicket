@@ -41,6 +41,16 @@
     </div>
   </div>
 
+  <!-- Payment Result Modal -->
+  <div id="paymentResultModal">
+    <div class="modal-content result-modal">
+      <div id="paymentIcon"></div>
+      <h2 id="paymentResultTitle"></h2>
+      <p id="paymentResultMessage"></p>
+      <div id="paymentResultButtons"></div>
+    </div>
+  </div>
+
   <style>
     :root { --bg:#fff9fc; --text:#1e293b; --accent:#2563eb; --accent-dark:#1e40af; --danger:#dc2626; --danger-dark:#b91c1c; --success:#16a34a; --card:#fff; }
     body.dark { --bg:#2c2c2c; --text:#e2e8f0; --accent:#3b82f6; --accent-dark:#1d4ed8; --danger:#ef4444; --danger-dark:#b91c1c; --success:#22c55e; --card:#1e293b; }
@@ -59,10 +69,21 @@
     #clearBtn { background:var(--danger); margin-left:10px; }
     #clearBtn:hover { background:var(--danger-dark); }
     #submitBtn:hover { background:var(--accent-dark); }
-    #confirmModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:10000; }
+    #confirmModal, #paymentResultModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:10000; }
     .modal-content { background:var(--card); border-radius:12px; padding:25px; max-width:420px; text-align:center; position:relative; color:var(--text); box-shadow:0 4px 10px rgba(0,0,0,0.2); animation:popIn 0.3s ease; }
     @keyframes popIn { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+    @keyframes fadeIn { from {opacity:0} to {opacity:1} }
     .close-modal { position:absolute; top:10px; right:15px; font-size:20px; cursor:pointer; }
+    #paymentResultModal { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); justify-content: center; align-items: center; z-index:10001; animation:fadeIn 0.3s ease; }
+    .result-modal { background: var(--card); border-radius: 16px; padding: 30px 25px; max-width: 400px; width: 90%; text-align: center; color: var(--text); box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation:popIn 0.3s ease; }
+    #paymentIcon { font-size: 50px; margin-bottom: 15px; }
+    #paymentResultTitle { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+    #paymentResultMessage { font-size: 16px; color: var(--text); margin-bottom: 25px; }
+    #paymentResultButtons button { margin: 8px; padding: 12px 22px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 16px; transition: transform 0.2s, opacity 0.2s; }
+    #paymentResultButtons button:hover { transform: scale(1.05); opacity: 0.9; }
+    #paymentResultButtons .success { background: #22c55e; color:white; }
+    #paymentResultButtons .danger { background: #ef4444; color:white; }
+    #paymentResultButtons .accent { background: #3b82f6; color:white; }
   </style>
 
   <script src="https://sdk.monnify.com/plugin/monnify.js" async></script>
@@ -140,6 +161,48 @@
     document.getElementById("closeModalBtn").onclick =
     document.getElementById("cancelBtn").onclick = () => confirmModal.style.display="none";
 
+    /* ===== PAYMENT RESULT MODAL ===== */
+    function showPaymentResult(success, message) {
+      const modal = document.getElementById("paymentResultModal");
+      const title = document.getElementById("paymentResultTitle");
+      const msg = document.getElementById("paymentResultMessage");
+      const buttonsDiv = document.getElementById("paymentResultButtons");
+      const iconDiv = document.getElementById("paymentIcon");
+
+      title.textContent = success ? "Payment Successful!" : "Payment Failed!";
+      msg.textContent = message || "";
+
+      iconDiv.innerHTML = success
+        ? '✅'
+        : '❌';
+      iconDiv.style.color = success ? '#22c55e' : '#ef4444';
+
+      buttonsDiv.innerHTML = "";
+
+      if (success) {
+        const okBtn = document.createElement("button");
+        okBtn.textContent = "OK";
+        okBtn.className = "success";
+        okBtn.onclick = () => window.location.href = "index.html";
+        buttonsDiv.appendChild(okBtn);
+      } else {
+        const tryBtn = document.createElement("button");
+        tryBtn.textContent = "Try Again";
+        tryBtn.className = "accent";
+        tryBtn.onclick = () => { modal.style.display = "none"; submitBtn.click(); };
+
+        const homeBtn = document.createElement("button");
+        homeBtn.textContent = "Home";
+        homeBtn.className = "danger";
+        homeBtn.onclick = () => window.location.href = "index.html";
+
+        buttonsDiv.appendChild(tryBtn);
+        buttonsDiv.appendChild(homeBtn);
+      }
+
+      modal.style.display = "flex";
+    }
+
     /* ===== PAYMENT ===== */
     document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
       confirmModal.style.display="none";
@@ -162,7 +225,6 @@
         // SDK FLOW
         const { apiKey, paymentReference, contractCode } = data.data;
         if (!apiKey || !paymentReference || !contractCode) throw new Error("Missing payment configuration for SDK flow");
-
         if (!window.MonnifySDK) throw new Error("Monnify SDK not loaded");
 
         const isTestMode = apiKey.startsWith("MK_TEST");
@@ -186,15 +248,15 @@
 
           onComplete:(response)=>{
             const tr = response.transactionReference||response.paymentReference;
-            if(tr) window.location.href=`https://nicket-lilac.vercel.app/verify?transactionReference=${encodeURIComponent(tr)}`;
-            else alert("Payment completed but transaction reference missing. Contact support.");
+            if(tr) showPaymentResult(true, `Transaction Ref: ${tr}`);
+            else showPaymentResult(false, "Payment completed but transaction reference missing. Contact support.");
           },
           onClose:()=>console.log("Payment window closed by user")
         });
 
       } catch(err){
         console.error("Payment error:",err);
-        alert("Unable to initialize payment. Try again.");
+        showPaymentResult(false, "Unable to initialize payment. Try again.");
       }
     });
 
