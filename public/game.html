@@ -89,178 +89,222 @@
   <script src="https://sdk.monnify.com/plugin/monnify.js" async></script>
 
   <script>
-    /* ===== THEME ===== */
-    const themeToggle = document.getElementById("themeToggle");
-    themeToggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-      themeToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
-      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  /* ===== THEME ===== */
+  const themeToggle = document.getElementById("themeToggle");
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    themeToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  });
+  if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
+
+  /* ===== USER DATA ===== */
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  if (!userData.name) { alert("Please register first."); window.location.href="index.html"; }
+  const { name, email, phone, eventValue } = userData;
+  document.getElementById("userName").textContent = name;
+
+  /* ===== GAME LOGIC ===== */
+  const grid = document.getElementById("numberGrid");
+  const selectedList = document.getElementById("selectedList");
+  const totalValueEl = document.getElementById("totalValue");
+  const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
+  const selectedNumbers = [];
+
+  function renderGrid() {
+    grid.innerHTML = "";
+    numbers.forEach(item => {
+      const box = document.createElement("div");
+      box.className = "number-box";
+      box.textContent = item.number;
+      if (item.globalCount >= 10) box.classList.add("disabled");
+      else box.addEventListener("click", () => selectNumber(item));
+      grid.appendChild(box);
     });
-    if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
+  }
 
-    /* ===== USER DATA ===== */
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    if (!userData.name) { alert("Please register first."); window.location.href="index.html"; }
-    const { name, email, phone, eventValue } = userData;
-    document.getElementById("userName").textContent = name;
+  function selectNumber(item) {
+    if (item.globalCount >= 10) return;
+    selectedNumbers.push(item.number);
+    item.globalCount++;
+    updateSelectedList();
+    renderGrid();
+  }
 
-    /* ===== GAME LOGIC ===== */
-    const grid = document.getElementById("numberGrid");
-    const selectedList = document.getElementById("selectedList");
-    const totalValueEl = document.getElementById("totalValue");
-    const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
-    const selectedNumbers = [];
+  function updateSelectedList() {
+    selectedList.innerHTML = "";
+    selectedNumbers.forEach(n => { const span = document.createElement("span"); span.textContent = n; selectedList.appendChild(span); });
+    totalValueEl.textContent = `Total: ₦${(selectedNumbers.length * 1000).toLocaleString()}`;
+  }
 
-    function renderGrid() {
-      grid.innerHTML = "";
-      numbers.forEach(item => {
-        const box = document.createElement("div");
-        box.className = "number-box";
-        box.textContent = item.number;
-        if (item.globalCount >= 10) box.classList.add("disabled");
-        else box.addEventListener("click", () => selectNumber(item));
-        grid.appendChild(box);
-      });
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    selectedNumbers.length = 0;
+    numbers.forEach(n => n.globalCount = 0);
+    updateSelectedList();
+    renderGrid();
+  });
+
+  /* ===== MODAL ===== */
+  const confirmModal = document.getElementById("confirmModal");
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.addEventListener("click", () => {
+    if (!selectedNumbers.length) return alert("Select at least one number!");
+    document.getElementById("confirmDetails").innerHTML = `
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
+      <p><strong>Event:</strong> ${eventValue}</p>
+      <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
+      <p><strong>Total:</strong> ₦${(selectedNumbers.length*1000).toLocaleString()}</p>`;
+    confirmModal.style.display = "flex";
+  });
+  document.getElementById("closeModalBtn").onclick =
+  document.getElementById("cancelBtn").onclick = () => confirmModal.style.display = "none";
+
+  /* ===== PAYMENT RESULT MODAL ===== */
+  function showPaymentResult(success, message) {
+    const modal = document.getElementById("paymentResultModal");
+    const title = document.getElementById("paymentResultTitle");
+    const msg = document.getElementById("paymentResultMessage");
+    const buttonsDiv = document.getElementById("paymentResultButtons");
+    const iconDiv = document.getElementById("paymentIcon");
+
+    title.textContent = success ? "Payment Successful!" : "Payment Failed!";
+    msg.textContent = message || "";
+
+    iconDiv.innerHTML = success ? '✅' : '❌';
+    iconDiv.style.color = success ? '#22c55e' : '#ef4444';
+
+    buttonsDiv.innerHTML = "";
+    if (success) {
+      const okBtn = document.createElement("button");
+      okBtn.textContent = "OK";
+      okBtn.className = "success";
+      okBtn.onclick = () => window.location.href = "index.html";
+      buttonsDiv.appendChild(okBtn);
+    } else {
+      const tryBtn = document.createElement("button");
+      tryBtn.textContent = "Try Again";
+      tryBtn.className = "accent";
+      tryBtn.onclick = () => { modal.style.display = "none"; submitBtn.click(); };
+
+      const homeBtn = document.createElement("button");
+      homeBtn.textContent = "Home";
+      homeBtn.className = "danger";
+      homeBtn.onclick = () => window.location.href = "index.html";
+
+      buttonsDiv.appendChild(tryBtn);
+      buttonsDiv.appendChild(homeBtn);
     }
 
-    function selectNumber(item) {
-      if (item.globalCount >= 10) return;
-      selectedNumbers.push(item.number);
-      item.globalCount++;
-      updateSelectedList();
-      renderGrid();
-    }
+    modal.style.display = "flex";
+  }
 
-    function updateSelectedList() {
-      selectedList.innerHTML = "";
-      selectedNumbers.forEach(n => { const span=document.createElement("span"); span.textContent=n; selectedList.appendChild(span); });
-      totalValueEl.textContent = `Total: ₦${(selectedNumbers.length*1000).toLocaleString()}`;
-    }
+  /* ===== CHECK FOR TRANSACTION AFTER REDIRECT ===== */
+  window.addEventListener("DOMContentLoaded", async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const transactionReference = urlParams.get("transactionReference");
 
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      selectedNumbers.length = 0;
-      numbers.forEach(n => n.globalCount=0);
-      updateSelectedList();
-      renderGrid();
-    });
-
-    /* ===== MODAL ===== */
-    const confirmModal = document.getElementById("confirmModal");
-    const submitBtn = document.getElementById("submitBtn");
-    submitBtn.addEventListener("click", () => {
-      if (!selectedNumbers.length) return alert("Select at least one number!");
-      document.getElementById("confirmDetails").innerHTML = `
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Event:</strong> ${eventValue}</p>
-        <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
-        <p><strong>Total:</strong> ₦${(selectedNumbers.length*1000).toLocaleString()}</p>`;
-      confirmModal.style.display = "flex";
-    });
-    document.getElementById("closeModalBtn").onclick =
-    document.getElementById("cancelBtn").onclick = () => confirmModal.style.display="none";
-
-    /* ===== PAYMENT RESULT MODAL ===== */
-    function showPaymentResult(success, message) {
-      const modal = document.getElementById("paymentResultModal");
-      const title = document.getElementById("paymentResultTitle");
-      const msg = document.getElementById("paymentResultMessage");
-      const buttonsDiv = document.getElementById("paymentResultButtons");
-      const iconDiv = document.getElementById("paymentIcon");
-
-      title.textContent = success ? "Payment Successful!" : "Payment Failed!";
-      msg.textContent = message || "";
-
-      iconDiv.innerHTML = success
-        ? '✅'
-        : '❌';
-      iconDiv.style.color = success ? '#22c55e' : '#ef4444';
-
-      buttonsDiv.innerHTML = "";
-
-      if (success) {
-        const okBtn = document.createElement("button");
-        okBtn.textContent = "OK";
-        okBtn.className = "success";
-        okBtn.onclick = () => window.location.href = "index.html";
-        buttonsDiv.appendChild(okBtn);
-      } else {
-        const tryBtn = document.createElement("button");
-        tryBtn.textContent = "Try Again";
-        tryBtn.className = "accent";
-        tryBtn.onclick = () => { modal.style.display = "none"; submitBtn.click(); };
-
-        const homeBtn = document.createElement("button");
-        homeBtn.textContent = "Home";
-        homeBtn.className = "danger";
-        homeBtn.onclick = () => window.location.href = "index.html";
-
-        buttonsDiv.appendChild(tryBtn);
-        buttonsDiv.appendChild(homeBtn);
-      }
-
-      modal.style.display = "flex";
-    }
-
-    /* ===== PAYMENT ===== */
-    document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
-      confirmModal.style.display="none";
-      const totalAmount = selectedNumbers.length*1000;
-
+    if (transactionReference) {
       try {
-        const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
-        });
+        const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(transactionReference)}`);
         if (!res.ok) throw new Error(`Backend error: ${res.status}`);
         const data = await res.json();
-        if (!data.success) throw new Error(data.error?.message || "Payment initiation failed");
+        if (!data.success) throw new Error(data.error?.message || "Payment verification failed");
 
-        // REDIRECT FLOW
-        const checkoutUrl = data.data?.checkoutUrl || data.data?.checkout_url;
-        if (checkoutUrl) { window.location.href = checkoutUrl; return; }
+        const info = data.data;
+        const success = info.status === "SUCCESSFUL";
+        const message = `
+          Payment Reference: ${info.paymentReference}\n
+          Amount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\n
+          Status: ${info.status}
+        `;
+        showPaymentResult(success, message);
 
-        // SDK FLOW
-        const { apiKey, paymentReference, contractCode } = data.data;
-        if (!apiKey || !paymentReference || !contractCode) throw new Error("Missing payment configuration for SDK flow");
-        if (!window.MonnifySDK) throw new Error("Monnify SDK not loaded");
-
-        const isTestMode = apiKey.startsWith("MK_TEST");
-
-        window.MonnifySDK.initialize({
-          amount: totalAmount,
-          currency: "NGN",
-          reference: paymentReference,
-          customerFullName: name,
-          customerEmail: email,
-          customerPhoneNumber: phone,
-          apiKey,
-          contractCode,
-          paymentDescription:`Payment for Nicket Game - ${eventValue}`,
-          redirectUrl:"https://nicket-lilac.vercel.app/verify",
-          isTestMode,
-          metaData:{ event:eventValue, selectedNumbers, playerName:name },
-
-          onLoadStart:()=>console.log("SDK loading started"),
-          onLoadComplete:()=>console.log("SDK loaded"),
-
-          onComplete:(response)=>{
-            const tr = response.transactionReference||response.paymentReference;
-            if(tr) showPaymentResult(true, `Transaction Ref: ${tr}`);
-            else showPaymentResult(false, "Payment completed but transaction reference missing. Contact support.");
-          },
-          onClose:()=>console.log("Payment window closed by user")
-        });
-
-      } catch(err){
-        console.error("Payment error:",err);
-        showPaymentResult(false, "Unable to initialize payment. Try again.");
+        // Clean URL to prevent modal repeating on reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (err) {
+        console.error("Verification error:", err);
+        showPaymentResult(false, "Unable to verify payment. Try again.");
       }
-    });
+    }
+  });
 
-    renderGrid();
-  </script>
+  /* ===== PAYMENT ===== */
+  document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
+    confirmModal.style.display = "none";
+    const totalAmount = selectedNumbers.length * 1000;
+
+    try {
+      const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
+      });
+
+      if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error?.message || "Payment initiation failed");
+
+      const { apiKey, paymentReference, contractCode } = data.data;
+      if (!apiKey || !paymentReference || !contractCode) throw new Error("Missing SDK configuration");
+      if (!window.MonnifySDK) throw new Error("Monnify SDK not loaded");
+
+      const isTestMode = apiKey.startsWith("MK_TEST");
+
+      window.MonnifySDK.initialize({
+        amount: totalAmount,
+        currency: "NGN",
+        reference: paymentReference,
+        customerFullName: name,
+        customerEmail: email,
+        customerPhoneNumber: phone,
+        apiKey,
+        contractCode,
+        paymentDescription: `Payment for Nicket Game - ${eventValue}`,
+        isTestMode,
+        metaData: { event: eventValue, selectedNumbers, playerName: name },
+
+        onLoadStart: () => console.log("SDK loading started"),
+        onLoadComplete: () => console.log("SDK loaded"),
+
+        onComplete: async (response) => {
+          const tr = response.transactionReference || response.paymentReference;
+          if (!tr) {
+            showPaymentResult(false, "Payment completed but transaction reference missing. Contact support.");
+            return;
+          }
+
+          try {
+            const verifyRes = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(tr)}`);
+            if (!verifyRes.ok) throw new Error(`Verification failed: ${verifyRes.status}`);
+            const verifyData = await verifyRes.json();
+            if (!verifyData.success) throw new Error(verifyData.error?.message || "Payment verification failed");
+
+            const info = verifyData.data;
+            const success = info.status === "SUCCESSFUL";
+            const message = `
+              Payment Reference: ${info.paymentReference}\n
+              Amount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\n
+              Status: ${info.status}
+            `;
+            showPaymentResult(success, message);
+          } catch (err) {
+            console.error("Verification error:", err);
+            showPaymentResult(false, "Unable to verify payment. Try again.");
+          }
+        },
+
+        onClose: () => console.log("Payment window closed by user")
+      });
+
+    } catch (err) {
+      console.error("Payment error:", err);
+      showPaymentResult(false, "Unable to initialize payment. Try again.");
+    }
+  });
+
+  renderGrid();
+</script>
 </body>
 </html>
