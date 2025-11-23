@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://sdk.monnify.com https://sandbox.sdk.monnify.com https://app.monnify.com; frame-src https://sdk.monnify.com https://sandbox.sdk.monnify.com https://app.monnify.com https://sandbox.monnify.com; connect-src 'self' https://nicket-backend.onrender.com https://sdk.monnify.com https://sandbox.sdk.monnify.com https://api.monnify.com https://api-sandbox.monnify.com https://app.monnify.com https://sandbox.monnify.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
+        script-src 'self' 'unsafe-inline' https://sdk.monnify.com; 
+        frame-src https://sdk.monnify.com; 
+        connect-src 'self' https://nicket-backend.onrender.com https://api.monnify.com; 
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+        font-src https://fonts.gstatic.com; 
+        img-src 'self' data:;">
   <title>NICKET Games</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -179,29 +185,11 @@
           onLoadComplete:()=>console.log("SDK loaded"),
 
           onComplete:(response)=>{
-            console.log("Payment completed:", response);
-
-            const trx =
-              response?.transactionReference ||
-              response?.paymentReference ||
-              response?.payment?.transactionReference;
-
-            if (!trx) {
-              alert("Payment completed but no transaction reference returned.");
-              window.location.href = "/failed";
-              return;
-            }
-
-            window.location.href =
-              `/verify?transactionReference=${encodeURIComponent(trx)}`;
+            const tr = response.transactionReference||response.paymentReference;
+            if(tr) window.location.href=`https://nicket-lilac.vercel.app/verify?transactionReference=${encodeURIComponent(tr)}`;
+            else alert("Payment completed but transaction reference missing. Contact support.");
           },
           onClose:()=>console.log("Payment window closed by user")
-
-          setTimeout(() =>{
-            if (!window.__monnifyRedirected) {
-              window.location.href = "/failed";
-            }
-          }, 500);
         });
 
       } catch(err){
@@ -210,7 +198,6 @@
       }
     });
 
-    window.__monnifyRedirected = false;
     renderGrid();
   </script>
 </body>
