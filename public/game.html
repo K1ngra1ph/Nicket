@@ -54,7 +54,7 @@
   </div>
 
   <style>
-    /* --- Styles preserved from previous version --- */
+    /* --- Styles preserved --- */
     :root { --bg:#fff9fc; --text:#1e293b; --accent:#2563eb; --accent-dark:#1e40af; --danger:#dc2626; --danger-dark:#b91c1c; --success:#16a34a; --card:#fff; }
     body.dark { --bg:#2c2c2c; --text:#e2e8f0; --accent:#3b82f6; --accent-dark:#1d4ed8; --danger:#ef4444; --danger-dark:#b91c1c; --success:#22c55e; --card:#1e293b; }
     body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; text-align:center; color:var(--text); transition:background 0.3s,color 0.3s; }
@@ -235,6 +235,28 @@
       }
     });
 
+    /* ===== ASYNC VERIFICATION FUNCTION ===== */
+    async function verifyPayment(transactionReference) {
+      try {
+        const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(transactionReference)}`);
+        if(!res.ok) throw new Error(`Verification failed: ${res.status}`);
+        const data = await res.json();
+        if(!data.success) throw new Error(data.error?.message || "Payment verification failed");
+
+        const info = data.data;
+        const success = info.status === "SUCCESSFUL";
+        const message = `
+          Payment Reference: ${info.paymentReference}\n
+          Amount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\n
+          Status: ${info.status}
+        `;
+        showPaymentResult(success, message);
+      } catch(err) {
+        console.error("Verification error:", err);
+        showPaymentResult(false, "Unable to verify payment. Try again.");
+      }
+    }
+
     /* ===== PAYMENT ===== */
     document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
       confirmModal.style.display = "none";
@@ -276,36 +298,9 @@
 
           onLoadStart: () => console.log("SDK loading started"),
           onLoadComplete: () => console.log("SDK loaded"),
-
-          onComplete: async function(response) {
-            (async () => {
-              const tr = response.transactionReference || response.paymentReference;
-              if(!tr) {
-                showPaymentResult(false, "Payment completed but transaction reference missing. Contact support.");
-                return;
-              }
-
-              try {
-                const verifyRes = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(tr)}`);
-                if (!verifyRes.ok) throw new Error(`Verification failed: ${verifyRes.status}`);
-                const verifyData = await verifyRes.json();
-                if (!verifyData.success) throw new Error(!verifyData.error?.message || "Payment verification failed");
-
-                const info = verifyData.data;
-                const success = info.status === "SUCCESSFUL";
-                const message = `
-                  Payment Reference: ${info.paymentReference}\n
-                  Amount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\n
-                  Status: ${info.status}
-                `;
-                showPaymentResult(success, message);
-              } catch (err) {
-                console.error("Verification error:", err);
-                showPaymentResult(false, "Unable to verify payment. Try again.");
-              }
-            })();
+          onComplete: function(response) {
+            verifyPayment(response.transactionReference || response.paymentReference);
           },
-
           onClose: () => console.log("Payment window closed by user"),
         });
 
