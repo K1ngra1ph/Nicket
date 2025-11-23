@@ -3,198 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://sandbox.sdk.monnify.com https://sdk.monnify.com; frame-src https://sandbox.sdk.monnify.com https://sdk.monnify.com https://sandbox.monnify.com https://sdk.monnify.com; connect-src 'self' https://nicket-backend.onrender.com https://sandbox.sdk.monnify.com https://sdk.monnify.com https://sandbox.monnify.com https://api.monnify.com https://api-sandbox.monnify.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://sdk.monnify.com https://sandbox.sdk.monnify.com https://app.monnify.com; frame-src https://sdk.monnify.com https://sandbox.sdk.monnify.com https://app.monnify.com https://sandbox.monnify.com; connect-src 'self' https://nicket-backend.onrender.com https://sdk.monnify.com https://sandbox.sdk.monnify.com https://api.monnify.com https://api-sandbox.monnify.com https://app.monnify.com https://sandbox.monnify.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
   <title>NICKET Games</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="preload" href="https://sandbox.sdk.monnify.com/plugin/monnify.js" as="script">
-
-  <style>
-    :root {
-      --bg: #fff9fc;
-      --text: #1e293b;
-      --accent: #2563eb;
-      --accent-dark: #1e40af;
-      --danger: #dc2626;
-      --danger-dark: #b91c1c;
-      --success: #16a34a;
-      --card: #ffffff;
-    }
-
-    body.dark {
-      --bg: #2c2c2c;
-      --text: #e2e8f0;
-      --accent: #3b82f6;
-      --accent-dark: #1d4ed8;
-      --danger: #ef4444;
-      --danger-dark: #b91c1c;
-      --success: #22c55e;
-      --card: #1e293b;
-    }
-
-    body {
-      font-family: "Poppins", sans-serif;
-      background: var(--bg);
-      padding: 30px;
-      text-align: center;
-      color: var(--text);
-      transition: background 0.3s, color 0.3s;
-    }
-
-    .logo {
-      position: fixed;
-      top: 30px;
-      left: 30px;
-      width: 120px;
-      height: auto;
-      z-index: 2000;
-    }
-
-    #themeToggle {
-      position: fixed;
-      top: 20px;
-      right: 25px;
-      background: transparent;
-      color: var(--accent-dark);
-      border: 2px solid var(--accent-dark);
-      border-radius: 20px;
-      padding: 6px 12px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.3s;
-    }
-
-    #themeToggle:hover {
-      background: var(--accent);
-      color: white;
-    }
-
-    #numberGrid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 10px;
-      max-width: 600px;
-      margin: 20px auto;
-    }
-
-    .number-box {
-      width: 55px;
-      height: 55px;
-      border-radius: 8px;
-      background: var(--accent);
-      color: white;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .number-box:hover {
-      background: var(--accent-dark);
-      transform: scale(1.05);
-    }
-
-    .number-box.disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    #selectedNumbers {
-      margin-top: 25px;
-      padding: 15px;
-      background: var(--card);
-      border-radius: 10px;
-      display: inline-block;
-      min-width: 320px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    #selectedNumbers span {
-      margin: 5px;
-      background: var(--success);
-      padding: 8px 12px;
-      color: white;
-      border-radius: 8px;
-      font-weight: 600;
-    }
-
-    #totalValue {
-      margin-top: 10px;
-      font-weight: 600;
-      color: var(--accent-dark);
-    }
-
-    #clearBtn, #submitBtn {
-      margin-top: 20px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 25px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.3s;
-    }
-
-    #clearBtn {
-      background: var(--danger);
-      margin-left: 10px;
-    }
-
-    #clearBtn:hover {
-      background: var(--danger-dark);
-    }
-
-    #submitBtn:hover {
-      background: var(--accent-dark);
-    }
-
-    /* Modal */
-    #confirmModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-    }
-
-    .modal-content {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 25px;
-      max-width: 420px;
-      text-align: center;
-      position: relative;
-      color: var(--text);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      animation: popIn 0.3s ease;
-    }
-
-    @keyframes popIn {
-      from { transform: scale(0.8); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 20px;
-      cursor: pointer;
-    }
-  </style>
 </head>
 
 <body>
-
   <img src="assets/images/nicket-logo.png" class="logo">
-
   <button id="themeToggle">🌙</button>
   <p>Hi, <strong id="userName"></strong>!</p>
 
@@ -220,182 +35,164 @@
     </div>
   </div>
 
-<script>
-/* ========= THEME ========= */
-const themeToggle = document.getElementById("themeToggle");
-themeToggle.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  themeToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
-});
-if (localStorage.getItem("theme") === "dark") {
-  document.body.classList.add("dark")
-    ? localStorage.setItem("theme", "dark")
-    : localStorage.removeItem("theme");
-  themeToggle.textContent = "☀️";
-}
+  <style>
+    :root { --bg:#fff9fc; --text:#1e293b; --accent:#2563eb; --accent-dark:#1e40af; --danger:#dc2626; --danger-dark:#b91c1c; --success:#16a34a; --card:#fff; }
+    body.dark { --bg:#2c2c2c; --text:#e2e8f0; --accent:#3b82f6; --accent-dark:#1d4ed8; --danger:#ef4444; --danger-dark:#b91c1c; --success:#22c55e; --card:#1e293b; }
+    body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; text-align:center; color:var(--text); transition:background 0.3s,color 0.3s; }
+    .logo { position:fixed; top:30px; left:30px; width:120px; height:auto; z-index:2000; }
+    #themeToggle { position:fixed; top:20px; right:25px; background:transparent; color:var(--accent-dark); border:2px solid var(--accent-dark); border-radius:20px; padding:6px 12px; cursor:pointer; font-weight:600; transition:0.3s; }
+    #themeToggle:hover { background:var(--accent); color:white; }
+    #numberGrid { display:grid; grid-template-columns:repeat(10,1fr); gap:10px; max-width:600px; margin:20px auto; }
+    .number-box { width:55px; height:55px; border-radius:8px; background:var(--accent); color:white; font-weight:600; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.2s; }
+    .number-box:hover { background:var(--accent-dark); transform:scale(1.05); }
+    .number-box.disabled { background:#9ca3af; cursor:not-allowed; transform:none; }
+    #selectedNumbers { margin-top:25px; padding:15px; background:var(--card); border-radius:10px; display:inline-block; min-width:320px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    #selectedNumbers span { margin:5px; background:var(--success); padding:8px 12px; color:white; border-radius:8px; font-weight:600; }
+    #totalValue { margin-top:10px; font-weight:600; color:var(--accent-dark); }
+    #clearBtn, #submitBtn { margin-top:20px; background:var(--accent); color:white; border:none; border-radius:8px; padding:12px 25px; font-size:16px; cursor:pointer; font-weight:600; transition:0.3s; }
+    #clearBtn { background:var(--danger); margin-left:10px; }
+    #clearBtn:hover { background:var(--danger-dark); }
+    #submitBtn:hover { background:var(--accent-dark); }
+    #confirmModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:10000; }
+    .modal-content { background:var(--card); border-radius:12px; padding:25px; max-width:420px; text-align:center; position:relative; color:var(--text); box-shadow:0 4px 10px rgba(0,0,0,0.2); animation:popIn 0.3s ease; }
+    @keyframes popIn { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+    .close-modal { position:absolute; top:10px; right:15px; font-size:20px; cursor:pointer; }
+  </style>
 
-/* ========= USER DATA ========= */
-const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-if (!userData.name) {
-  alert("Please register first.");
-  window.location.href = "index.html";
-}
-const { name, email, phone, eventValue } = userData;
-document.getElementById("userName").textContent = name;
+  <script src="https://sdk.monnify.com/plugin/monnify.js" async></script>
 
-/* ========= GAME LOGIC ========= */
-const grid = document.getElementById("numberGrid");
-const selectedList = document.getElementById("selectedList");
-const totalValueEl = document.getElementById("totalValue");
-const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
-const selectedNumbers = [];
-
-function renderGrid() {
-  grid.innerHTML = "";
-  numbers.forEach((item) => {
-    const box = document.createElement("div");
-    box.classList.add("number-box");
-    box.textContent = item.number;
-
-    if (item.globalCount >= 10) {
-      box.classList.add("disabled");
-    } else {
-      box.addEventListener("click", () => handleSelect(item));
-    }
-    grid.appendChild(box);
-  });
-}
-
-function handleSelect(item) {
-  if (item.globalCount >= 10) return;
-  selectedNumbers.push(item.number);
-  item.globalCount++;
-  updateSelectedList();
-  renderGrid();
-}
-
-function updateSelectedList() {
-  selectedList.innerHTML = "";
-  selectedNumbers.forEach(num => {
-    const tag = document.createElement("span");
-    tag.textContent = num;
-    selectedList.appendChild(tag);
-  });
-  totalValueEl.textContent = `Total: ₦${(selectedNumbers.length * 1000).toLocaleString()}`;
-}
-
-document.getElementById("clearBtn").addEventListener("click", () => {
-  selectedNumbers.length = 0;
-  numbers.forEach(n => n.globalCount = 0);
-  updateSelectedList();
-  renderGrid();
-});
-
-/* ========= MODAL ========= */
-const confirmModal = document.getElementById("confirmModal");
-document.getElementById("submitBtn").addEventListener("click", () => {
-  if (selectedNumbers.length === 0) return alert("Select at least one number!");
-
-  const total = selectedNumbers.length * 1000;
-  document.getElementById("confirmDetails").innerHTML = `
-    <p><strong>Name:</strong> ${name}</p>
-    <p><strong>Email:</strong> ${email}</p>
-    <p><strong>Phone:</strong> ${phone}</p>
-    <p><strong>Event:</strong> ${eventValue}</p>
-    <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
-    <p><strong>Total:</strong> ₦${total.toLocaleString()}</p>
-  `;
-
-  confirmModal.style.display = "flex";
-});
-document.getElementById("closeModalBtn").onclick =
-document.getElementById("cancelBtn").onclick = () => confirmModal.style.display = "none";
-
-/* ========= PAYMENT ========= */
-document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
-  confirmModal.style.display = "none";
-
-  const totalAmount = selectedNumbers.length * 1000;
-
-  try {
-    // 1. Call your backend to initiate payment
-    const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
+  <script>
+    /* ===== THEME ===== */
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      themeToggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
     });
+    if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
 
-    if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error?.message || "Payment initiation failed");
+    /* ===== USER DATA ===== */
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    if (!userData.name) { alert("Please register first."); window.location.href="index.html"; }
+    const { name, email, phone, eventValue } = userData;
+    document.getElementById("userName").textContent = name;
 
-    // 2. Check if Monnify returned a checkoutUrl (redirect flow)
-    const checkoutUrl = data.data?.checkoutUrl || data.data?.checkout_url;
-    if (checkoutUrl) {
-      window.location.href = checkoutUrl; // Option A: redirect immediately
-      return;
-    }
+    /* ===== GAME LOGIC ===== */
+    const grid = document.getElementById("numberGrid");
+    const selectedList = document.getElementById("selectedList");
+    const totalValueEl = document.getElementById("totalValue");
+    const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
+    const selectedNumbers = [];
 
-    // 3. Otherwise, use SDK flow
-    const { apiKey, paymentReference, contractCode } = data.data;
-    if (!apiKey || !paymentReference || !contractCode) {
-      throw new Error("Missing payment configuration for SDK flow");
-    }
-
-    // 4. Load SDK only once
-    if (!window.MonnifySDK) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = "https://sandbox.sdk.monnify.com/plugin/monnify.js";
-        s.async = true;
-        s.onload = resolve;
-        s.onerror = () => reject(new Error("Failed to load Monnify SDK"));
-        document.head.appendChild(s);
+    function renderGrid() {
+      grid.innerHTML = "";
+      numbers.forEach(item => {
+        const box = document.createElement("div");
+        box.className = "number-box";
+        box.textContent = item.number;
+        if (item.globalCount >= 10) box.classList.add("disabled");
+        else box.addEventListener("click", () => selectNumber(item));
+        grid.appendChild(box);
       });
     }
 
-    const isTestMode = apiKey.startsWith("MK_TEST");
+    function selectNumber(item) {
+      if (item.globalCount >= 10) return;
+      selectedNumbers.push(item.number);
+      item.globalCount++;
+      updateSelectedList();
+      renderGrid();
+    }
 
-    // 5. Initialize Monnify SDK
-    window.MonnifySDK.initialize({
-      amount: totalAmount,
-      currency: "NGN",
-      reference: paymentReference,
-      customerFullName: name || "",
-      customerEmail: email || "",
-      customerPhoneNumber: phone || "",
-      apiKey,
-      contractCode,
-      paymentDescription: `Payment for Nicket Game - ${eventValue}`,
-      redirectUrl: "https://nicket-lilac.vercel.app/verify",
-      isTestMode,
-      metaData: { event: eventValue, selectedNumbers, playerName: name },
+    function updateSelectedList() {
+      selectedList.innerHTML = "";
+      selectedNumbers.forEach(n => { const span=document.createElement("span"); span.textContent=n; selectedList.appendChild(span); });
+      totalValueEl.textContent = `Total: ₦${(selectedNumbers.length*1000).toLocaleString()}`;
+    }
 
-      onLoadStart: () => console.log("Monnify SDK load started"),
-      onLoadComplete: () => console.log("Monnify SDK load complete"),
-      
-      onComplete: (response) => {
-        console.log("Payment completed:", response);
-        const transactionReference = response.transactionReference || response.paymentReference;
-
-        if (transactionReference) {
-          window.location.href = `/verify?transactionReference=${encodeURIComponent(transactionReference)}`;
-        } else {
-          alert("Payment completed but transaction reference missing. Please contact support.");
-        }
-      },
-      
-      onClose: () => console.log("Payment window closed")
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      selectedNumbers.length = 0;
+      numbers.forEach(n => n.globalCount=0);
+      updateSelectedList();
+      renderGrid();
     });
 
-  } catch (err) {
-    console.error("Payment error:", err);
-    alert("Unable to initialize payment. Try again.");
-  }
-});
+    /* ===== MODAL ===== */
+    const confirmModal = document.getElementById("confirmModal");
+    const submitBtn = document.getElementById("submitBtn");
+    submitBtn.addEventListener("click", () => {
+      if (!selectedNumbers.length) return alert("Select at least one number!");
+      document.getElementById("confirmDetails").innerHTML = `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Event:</strong> ${eventValue}</p>
+        <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
+        <p><strong>Total:</strong> ₦${(selectedNumbers.length*1000).toLocaleString()}</p>`;
+      confirmModal.style.display = "flex";
+    });
+    document.getElementById("closeModalBtn").onclick =
+    document.getElementById("cancelBtn").onclick = () => confirmModal.style.display="none";
 
-renderGrid();
-</script>
+    /* ===== PAYMENT ===== */
+    document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
+      confirmModal.style.display="none";
+      const totalAmount = selectedNumbers.length*1000;
 
+      try {
+        const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
+        });
+        if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error?.message || "Payment initiation failed");
+
+        // REDIRECT FLOW
+        const checkoutUrl = data.data?.checkoutUrl || data.data?.checkout_url;
+        if (checkoutUrl) { window.location.href = checkoutUrl; return; }
+
+        // SDK FLOW
+        const { apiKey, paymentReference, contractCode } = data.data;
+        if (!apiKey || !paymentReference || !contractCode) throw new Error("Missing payment configuration for SDK flow");
+
+        if (!window.MonnifySDK) throw new Error("Monnify SDK not loaded");
+
+        const isTestMode = apiKey.startsWith("MK_TEST");
+
+        window.MonnifySDK.initialize({
+          amount: totalAmount,
+          currency: "NGN",
+          reference: paymentReference,
+          customerFullName: name,
+          customerEmail: email,
+          customerPhoneNumber: phone,
+          apiKey,
+          contractCode,
+          paymentDescription:`Payment for Nicket Game - ${eventValue}`,
+          redirectUrl:"https://nicket-lilac.vercel.app/verify",
+          isTestMode,
+          metaData:{ event:eventValue, selectedNumbers, playerName:name },
+
+          onLoadStart:()=>console.log("SDK loading started"),
+          onLoadComplete:()=>console.log("SDK loaded"),
+
+          onComplete:(response)=>{
+            const tr = response.transactionReference||response.paymentReference;
+            if(tr) window.location.href=`https://nicket-lilac.vercel.app/verify?transactionReference=${encodeURIComponent(tr)}`;
+            else alert("Payment completed but transaction reference missing. Contact support.");
+          },
+          onClose:()=>console.log("Payment window closed by user")
+        });
+
+      } catch(err){
+        console.error("Payment error:",err);
+        alert("Unable to initialize payment. Try again.");
+      }
+    });
+
+    renderGrid();
+  </script>
 </body>
 </html>
