@@ -373,7 +373,18 @@ document.getElementById("confirmPaymentBtn").addEventListener("click", async () 
 
       onLoadStart: () => console.log("Monnify SDK load started"),
       onLoadComplete: () => console.log("Monnify SDK load complete"),
-      onComplete: (response) => console.log("Payment completed:", response),
+      
+      onComplete: (response) => {
+        console.log("Payment completed:", response);
+        const transactionReference = response.transactionReference || response.paymentReference;
+
+        if (transactionReference) {
+          window.location.href = `/verify?transactionReference=${encodeURIComponent(transactionReference)}`;
+        } else {
+          alert("Payment completed but transaction reference missing. Please contact support.");
+        }
+      },
+      
       onClose: () => console.log("Payment window closed")
     });
 
