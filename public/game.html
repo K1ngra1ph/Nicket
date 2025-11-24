@@ -266,7 +266,7 @@
         const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue })
+          body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue, selectedNumbers })
         });
 
         if (!res.ok) throw new Error(`Backend error: ${res.status}`);
