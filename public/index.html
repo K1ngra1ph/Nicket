@@ -397,7 +397,7 @@ document.getElementById('submitBtn').addEventListener('click', e => {
 
 /* ========================= PAYMENT VERIFICATION (SUCCESS ONLY) ========================= */
 const urlParams = new URLSearchParams(window.location.search);
-const reference = urlParams.get("reference");
+const reference = urlParams.get("paymentReference");
 
 // If redirected back from Monnify
 if (reference) {
