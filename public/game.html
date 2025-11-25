@@ -211,7 +211,7 @@
       modal.style.display = "flex";
     }
 
-    /* ===== CHECK FOR TRANSACTION AFTER REDIRECT ===== */
+    /* ===== CHECK FOR TRANSACTION AFTER REDIRECT (FORCE FAILED) ===== */
     window.addEventListener("DOMContentLoaded", async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const transactionReference = urlParams.get("transactionReference");
@@ -224,13 +224,14 @@
           if (!data.success) throw new Error(data.error?.message || "Payment verification failed");
 
           const info = data.data;
-          const success = info.status === "SUCCESSFUL";
+
+          // FORCE PAYMENT FAILED
           const message = `
             Payment Reference: ${info.paymentReference}\n
             Amount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\n
             Status: ${info.status}
           `;
-          showPaymentResult(success, message);
+          showPaymentResult(false, message); // always fail
           window.history.replaceState({}, document.title, window.location.pathname);
         } catch (err) {
           console.error("Verification error:", err);
