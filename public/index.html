@@ -110,7 +110,7 @@
       transition: background 0.3s ease;
     }
 
-    #feedbackModal {
+    #feedbackModal, #successPaymentModal {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -123,7 +123,7 @@
       transition: opacity 0.3s ease;
     }
 
-    #feedbackModal.show {
+    #feedbackModal.show, #successPaymentModal.show {
       display: flex;
       opacity: 1;
     }
@@ -154,6 +154,7 @@
     }
 
     .close-btn:hover { transform: scale(1.2); }
+
     .modal-content h3 { margin: 0 0 10px; font-size: 20px; }
 
     .modal-btn {
@@ -259,6 +260,7 @@
     </div>
   </div>
 
+  <!-- REGISTRATION MODAL -->
   <div id="feedbackModal">
     <div class="modal-content">
       <button class="close-btn" id="closeModalBtn">✖</button>
@@ -266,6 +268,18 @@
       <p id="modalMessage">Please fill all fields before proceeding.</p>
       <div style="margin-top:20px;">
         <button class="modal-btn" id="modalCloseBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT SUCCESS MODAL -->
+  <div id="successPaymentModal">
+    <div class="modal-content">
+      <button class="close-btn" id="closePaymentSuccess">✖</button>
+      <h3 id="paymentSuccessTitle">Payment Successful 🎉</h3>
+      <p id="paymentSuccessMessage">Your payment was completed successfully!</p>
+      <div style="margin-top:20px;">
+        <button class="modal-btn" id="paymentSuccessOk">OK</button>
       </div>
     </div>
   </div>
@@ -279,6 +293,7 @@
   <button class="contact-btn" onclick="window.location.href='contact.html'">Contact Us</button>
 
   <script>
+    // THEME TOGGLE
     const themeToggle = document.getElementById("themeToggle");
     const currentTheme = localStorage.getItem("theme");
     if (currentTheme === "dark") {
@@ -292,6 +307,7 @@
       localStorage.setItem("theme", isDark ? "dark" : "light");
     });
 
+    // EVENT DETAILS DISPLAY
     const eventSelect = document.getElementById("event");
     const eventDetails = document.getElementById("eventDetails");
     eventSelect.addEventListener("change", () => {
@@ -305,12 +321,28 @@
       }
     });
 
+    // MODALS
     const feedbackModal = document.getElementById('feedbackModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalMessage = document.getElementById('modalMessage');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
 
+    const successPaymentModal = document.getElementById("successPaymentModal");
+    const paymentSuccessMessage = document.getElementById("paymentSuccessMessage");
+    const closePaymentSuccess = document.getElementById("closePaymentSuccess");
+    const paymentSuccessOk = document.getElementById("paymentSuccessOk");
+
+    // GLOBAL FUNCTION TO SHOW PAYMENT SUCCESS
+    function showPaymentSuccess(msg = "Your payment was successful!") {
+      paymentSuccessMessage.textContent = msg;
+      successPaymentModal.classList.add("show");
+    }
+
+    closePaymentSuccess.onclick = () => successPaymentModal.classList.remove("show");
+    paymentSuccessOk.onclick = () => successPaymentModal.classList.remove("show");
+
+    // REGISTRATION MODAL FUNCTION
     function showModal(name, eventValue, email, phone, countryCode) {
       modalTitle.textContent = "Registration Successful 🎉";
       modalMessage.innerHTML = `
@@ -352,6 +384,7 @@
 
     closeModalBtn.onclick = () => feedbackModal.classList.remove("show");
 
+    // FORM SUBMISSION
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.addEventListener('click', (e) => {
       e.preventDefault();
