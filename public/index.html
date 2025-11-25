@@ -405,23 +405,29 @@ if (reference) {
 }
 
 async function verifyPayment(reference) {
-  try {
-    const response = await fetch(
-      `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`
-    );
+  let attempts = 0;
+  const maxAttempts = 5;
 
-    const data = await response.json();
+  While (attempts < maxAttempts) {
+    attempts++;
+    try {
+      const response = await fetch(
+        `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`
+      );
+      const data = await response.json();
 
-    if (!data.success || data.status !== "SUCCESS") {
-      window.location.href = `game.html?failed=true&reference=${reference}`;
-      return;
+      if (data.success) {
+        showPaymentSuccess("Your payment was confirmed successfully 🎉");
+        return;
+      }
+      if  (attempts < maxAttempts) await new Promise(r => setTimeout(r, 3000));
+    } catch (err) {
+      console.error("Verification error:", err);
+      break;
     }
-
-    showPaymentSuccess("Your payment was confirmed successfully 🎉");
-
-  } catch (error) {
-    console.error("Verification error:", error);
-    window.location.href = `game.html?failed=true&reference=${reference}`;
+  }
+  
+  window.location.href = `game.html?failed=true&reference=${reference}`;
   }
 }
 </script>
