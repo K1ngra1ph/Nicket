@@ -293,10 +293,9 @@
   <button class="contact-btn" onclick="window.location.href='contact.html'">Contact Us</button>
 
   <script>
-    // THEME TOGGLE
+    // ===== THEME TOGGLE =====
     const themeToggle = document.getElementById("themeToggle");
-    const currentTheme = localStorage.getItem("theme");
-    if (currentTheme === "dark") {
+    if (localStorage.getItem("theme") === "dark") {
       document.body.classList.add("dark");
       themeToggle.textContent = "🌙";
     }
@@ -307,21 +306,17 @@
       localStorage.setItem("theme", isDark ? "dark" : "light");
     });
 
-    // EVENT DETAILS DISPLAY
+    // ===== EVENT DETAILS =====
     const eventSelect = document.getElementById("event");
     const eventDetails = document.getElementById("eventDetails");
     eventSelect.addEventListener("change", () => {
-      const selectedOption = eventSelect.options[eventSelect.selectedIndex];
-      const location = selectedOption.getAttribute("data-location");
-      const date = selectedOption.getAttribute("data-date");
-      if (eventSelect.value && location && date) {
-        eventDetails.innerHTML = `<strong>📍 Location:</strong> ${location}<br><strong>📅 Date:</strong> ${date}`;
-      } else {
-        eventDetails.innerHTML = "";
-      }
+      const option = eventSelect.options[eventSelect.selectedIndex];
+      const loc = option.getAttribute("data-location");
+      const date = option.getAttribute("data-date");
+      eventDetails.innerHTML = eventSelect.value && loc && date ? `<strong>📍 Location:</strong> ${loc}<br><strong>📅 Date:</strong> ${date}` : "";
     });
 
-    // MODALS
+    // ===== MODALS =====
     const feedbackModal = document.getElementById('feedbackModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalMessage = document.getElementById('modalMessage');
@@ -333,16 +328,13 @@
     const closePaymentSuccess = document.getElementById("closePaymentSuccess");
     const paymentSuccessOk = document.getElementById("paymentSuccessOk");
 
-    // GLOBAL FUNCTION TO SHOW PAYMENT SUCCESS
     function showPaymentSuccess(msg = "Your payment was successful!") {
       paymentSuccessMessage.textContent = msg;
       successPaymentModal.classList.add("show");
     }
-
     closePaymentSuccess.onclick = () => successPaymentModal.classList.remove("show");
     paymentSuccessOk.onclick = () => successPaymentModal.classList.remove("show");
 
-    // REGISTRATION MODAL FUNCTION
     function showModal(name, eventValue, email, phone, countryCode) {
       modalTitle.textContent = "Registration Successful 🎉";
       modalMessage.innerHTML = `
@@ -365,28 +357,27 @@
       `;
       modalTitle.style.color = "#16a34a";
 
-      const userData = {
-        name: name.trim(),
-        email: email.trim(),
-        phone: `${countryCode}${phone.trim()}`,
-        eventValue: eventValue.trim()
-      };
       try {
-        localStorage.setItem("userData", JSON.stringify(userData));
+        localStorage.setItem("userData", JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          phone: `${countryCode}${phone.trim()}`,
+          eventValue: eventValue.trim()
+        }));
       } catch {}
+
       feedbackModal.classList.add("show");
     }
 
     modalCloseBtn.onclick = () => {
       feedbackModal.classList.remove("show");
-      setTimeout(() => (window.location.href = "game.html"), 300);
+      setTimeout(() => window.location.href = "game.html", 300);
     };
-
     closeModalBtn.onclick = () => feedbackModal.classList.remove("show");
 
-    // FORM SUBMISSION
+    // ===== FORM SUBMISSION =====
     const submitBtn = document.getElementById('submitBtn');
-    submitBtn.addEventListener('click', (e) => {
+    submitBtn.addEventListener('click', e => {
       e.preventDefault();
       const name = document.getElementById('name').value.trim();
       const email = document.getElementById('email').value.trim();
@@ -403,6 +394,41 @@
       }
 
       showModal(name, eventValue, email, phone, countryCode);
+    });
+
+    // ===== BACKEND PAYMENT VERIFICATION =====
+    window.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const transactionReference = params.get("transactionReference");
+      if (!transactionReference) return;
+
+      try {
+        const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(transactionReference)}`);
+        if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error?.message || "Payment verification failed");
+
+        const info = data.data;
+        const success = info.status === "SUCCESSFUL";
+        const message = `Payment Reference: ${info.paymentReference}\nAmount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\nStatus: ${info.status}`;
+
+        if (success) showPaymentSuccess(message);
+        else {
+          modalTitle.textContent = "Payment Failed ❌";
+          modalTitle.style.color = "#dc2626";
+          modalMessage.textContent = message;
+          feedbackModal.classList.add("show");
+        }
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+      } catch (err) {
+        console.error("Payment verification error:", err);
+        modalTitle.textContent = "Payment Verification Error";
+        modalTitle.style.color = "#dc2626";
+        modalMessage.textContent = "Unable to verify payment. Try again.";
+        feedbackModal.classList.add("show");
+      }
     });
   </script>
 </body>
