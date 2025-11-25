@@ -293,143 +293,133 @@
   <button class="contact-btn" onclick="window.location.href='contact.html'">Contact Us</button>
 
   <script>
-    // ===== THEME TOGGLE =====
-    const themeToggle = document.getElementById("themeToggle");
-    if (localStorage.getItem("theme") === "dark") {
-      document.body.classList.add("dark");
-      themeToggle.textContent = "🌙";
-    }
-    themeToggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-      const isDark = document.body.classList.contains("dark");
-      themeToggle.textContent = isDark ? "🌙" : "☀️";
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-    });
+  // ===== THEME TOGGLE =====
+  const themeToggle = document.getElementById("themeToggle");
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    themeToggle.textContent = "🌙";
+  }
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    const isDark = document.body.classList.contains("dark");
+    themeToggle.textContent = isDark ? "🌙" : "☀️";
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  });
 
-    // ===== EVENT DETAILS =====
-    const eventSelect = document.getElementById("event");
-    const eventDetails = document.getElementById("eventDetails");
-    eventSelect.addEventListener("change", () => {
-      const option = eventSelect.options[eventSelect.selectedIndex];
-      const loc = option.getAttribute("data-location");
-      const date = option.getAttribute("data-date");
-      eventDetails.innerHTML = eventSelect.value && loc && date ? `<strong>📍 Location:</strong> ${loc}<br><strong>📅 Date:</strong> ${date}` : "";
-    });
+  // ===== EVENT DETAILS =====
+  const eventSelect = document.getElementById("event");
+  const eventDetails = document.getElementById("eventDetails");
+  eventSelect.addEventListener("change", () => {
+    const option = eventSelect.options[eventSelect.selectedIndex];
+    const loc = option.getAttribute("data-location");
+    const date = option.getAttribute("data-date");
+    eventDetails.innerHTML = eventSelect.value && loc && date ? `<strong>📍 Location:</strong> ${loc}<br><strong>📅 Date:</strong> ${date}` : "";
+  });
 
-    // ===== MODALS =====
-    const feedbackModal = document.getElementById('feedbackModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalMessage = document.getElementById('modalMessage');
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-    const closeModalBtn = document.getElementById('closeModalBtn');
+  // ===== MODALS =====
+  const feedbackModal = document.getElementById('feedbackModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalMessage = document.getElementById('modalMessage');
+  const modalCloseBtn = document.getElementById('modalCloseBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
 
-    const successPaymentModal = document.getElementById("successPaymentModal");
-    const paymentSuccessMessage = document.getElementById("paymentSuccessMessage");
-    const closePaymentSuccess = document.getElementById("closePaymentSuccess");
-    const paymentSuccessOk = document.getElementById("paymentSuccessOk");
+  const successPaymentModal = document.getElementById("successPaymentModal");
+  const paymentSuccessMessage = document.getElementById("paymentSuccessMessage");
+  const closePaymentSuccess = document.getElementById("closePaymentSuccess");
+  const paymentSuccessOk = document.getElementById("paymentSuccessOk");
 
-    function showPaymentSuccess(msg = "Your payment was successful!") {
-      paymentSuccessMessage.textContent = msg;
-      successPaymentModal.classList.add("show");
-    }
-    closePaymentSuccess.onclick = () => successPaymentModal.classList.remove("show");
-    paymentSuccessOk.onclick = () => successPaymentModal.classList.remove("show");
+  function showPaymentSuccess(msg = "Your payment was successful!") {
+    paymentSuccessMessage.textContent = msg;
+    successPaymentModal.classList.add("show");
+  }
+  closePaymentSuccess.onclick = () => successPaymentModal.classList.remove("show");
+  paymentSuccessOk.onclick = () => successPaymentModal.classList.remove("show");
 
-    function showModal(name, eventValue, email, phone, countryCode) {
-      modalTitle.textContent = "Registration Successful 🎉";
-      modalMessage.innerHTML = `
-        <div style="animation:fadeInUp 0.5s ease;">
-          <p style="font-size:16px; line-height:1.6;">
-            Thank you, <strong>${name}</strong>! You’ve successfully registered for
-            <strong>${eventValue}</strong>.
-          </p>
-          <div style="background:#f1f5f9; padding:12px 15px; border-radius:8px; margin-top:15px; text-align:left;">
-            <h4 style="margin:0 0 8px;">🎮 Game Rules:</h4>
-            <ul style="margin:0; padding-left:20px; line-height:1.6;">
-              <li>Pick your numbers carefully — once submitted, you can’t change them.</li>
-              <li>Winners will be announced before the event day.</li>
-              <li>Ensure your contact details are correct to receive your VIP/Backstage ticket.</li>
-              <li>Incomplete or invalid registrations may be disqualified.</li>
-            </ul>
-          </div>
-          <p style="margin-top:18px;">Click <strong>OK</strong> to continue to the game page.</p>
+  function showModal(name, eventValue, email, phone, countryCode) {
+    modalTitle.textContent = "Registration Successful 🎉";
+    modalMessage.innerHTML = `
+      <div style="animation:fadeInUp 0.5s ease;">
+        <p style="font-size:16px; line-height:1.6;">
+          Thank you, <strong>${name}</strong>! You’ve successfully registered for
+          <strong>${eventValue}</strong>.
+        </p>
+        <div style="background:#f1f5f9; padding:12px 15px; border-radius:8px; margin-top:15px; text-align:left;">
+          <h4 style="margin:0 0 8px;">🎮 Game Rules:</h4>
+          <ul style="margin:0; padding-left:20px; line-height:1.6;">
+            <li>Pick your numbers carefully — once submitted, you can’t change them.</li>
+            <li>Winners will be announced before the event day.</li>
+            <li>Ensure your contact details are correct to receive your VIP/Backstage ticket.</li>
+            <li>Incomplete or invalid registrations may be disqualified.</li>
+          </ul>
         </div>
-      `;
-      modalTitle.style.color = "#16a34a";
+        <p style="margin-top:18px;">Click <strong>OK</strong> to continue to the game page.</p>
+      </div>
+    `;
+    modalTitle.style.color = "#16a34a";
 
-      try {
-        localStorage.setItem("userData", JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          phone: `${countryCode}${phone.trim()}`,
-          eventValue: eventValue.trim()
-        }));
-      } catch {}
+    try {
+      localStorage.setItem("userData", JSON.stringify({
+        name: name.trim(),
+        email: email.trim(),
+        phone: `${countryCode}${phone.trim()}`,
+        eventValue: eventValue.trim()
+      }));
+    } catch {}
 
+    feedbackModal.classList.add("show");
+  }
+
+  modalCloseBtn.onclick = () => {
+    feedbackModal.classList.remove("show");
+    setTimeout(() => window.location.href = "game.html", 300);
+  };
+  closeModalBtn.onclick = () => feedbackModal.classList.remove("show");
+
+  // ===== FORM SUBMISSION =====
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.addEventListener('click', e => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const countryCode = document.getElementById('countryCode').value.trim();
+    const eventValue = document.getElementById('event').value.trim();
+
+    if (!name || !email || !phone || !eventValue) {
+      modalTitle.textContent = "Error";
+      modalTitle.style.color = "#dc2626";
+      modalMessage.textContent = "Please fill in all required fields.";
       feedbackModal.classList.add("show");
+      return;
     }
 
-    modalCloseBtn.onclick = () => {
-      feedbackModal.classList.remove("show");
-      setTimeout(() => window.location.href = "game.html", 300);
-    };
-    closeModalBtn.onclick = () => feedbackModal.classList.remove("show");
+    showModal(name, eventValue, email, phone, countryCode);
+  });
 
-    // ===== FORM SUBMISSION =====
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.addEventListener('click', e => {
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const countryCode = document.getElementById('countryCode').value.trim();
-      const eventValue = document.getElementById('event').value.trim();
+  // ===== BACKEND PAYMENT VERIFICATION (SUCCESS ONLY) =====
+  window.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const transactionReference = params.get("transactionReference");
+    if (!transactionReference) return;
 
-      if (!name || !email || !phone || !eventValue) {
-        modalTitle.textContent = "Error";
-        modalTitle.style.color = "#dc2626";
-        modalMessage.textContent = "Please fill in all required fields.";
-        feedbackModal.classList.add("show");
-        return;
-      }
+    try {
+      const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(transactionReference)}`);
+      if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+      const data = await res.json();
+      if (!data.success) return; // ignore failures
 
-      showModal(name, eventValue, email, phone, countryCode);
-    });
-
-    // ===== BACKEND PAYMENT VERIFICATION =====
-    window.addEventListener("DOMContentLoaded", async () => {
-      const params = new URLSearchParams(window.location.search);
-      const transactionReference = params.get("transactionReference");
-      if (!transactionReference) return;
-
-      try {
-        const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(transactionReference)}`);
-        if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error?.message || "Payment verification failed");
-
-        const info = data.data;
-        const success = info.status === "SUCCESSFUL";
+      const info = data.data;
+      if (info.status === "SUCCESSFUL") {
         const message = `Payment Reference: ${info.paymentReference}\nAmount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\nStatus: ${info.status}`;
-
-        if (success) showPaymentSuccess(message);
-        else {
-          modalTitle.textContent = "Payment Failed ❌";
-          modalTitle.style.color = "#dc2626";
-          modalMessage.textContent = message;
-          feedbackModal.classList.add("show");
-        }
-
-        window.history.replaceState({}, document.title, window.location.pathname);
-
-      } catch (err) {
-        console.error("Payment verification error:", err);
-        modalTitle.textContent = "Payment Verification Error";
-        modalTitle.style.color = "#dc2626";
-        modalMessage.textContent = "Unable to verify payment. Try again.";
-        feedbackModal.classList.add("show");
+        showPaymentSuccess(message);
       }
-    });
-  </script>
+
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (err) {
+      console.error("Payment verification error:", err);
+      // Ignore failures
+    }
+  });
+</script>
 </body>
 </html>
