@@ -211,28 +211,55 @@
     modal.style.display = "flex";
   }
 
-  /* ===== CHECK FOR FAILED PAYMENT REDIRECT ===== */
+  /* ===== CHECK FOR FAILED PAYMENT REDIRECT =====
+     This page (game.html) ONLY shows failure/invalid outcomes.
+     If the verification API reports success, this script does nothing
+     (index.html is responsible for showing success).
+  */
   window.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const transactionReference = urlParams.get("transactionReference");
+    const reference = urlParams.get("reference"); // backend uses `reference` param
 
-    if (!transactionReference) return;
+    if (!reference) return;
 
     try {
-      const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?transactionReference=${encodeURIComponent(transactionReference)}`);
-      const data = await res.json();
-      if (!data.success) return; // ignore successes
-
-      const info = data.data;
-      if (info.status !== "SUCCESSFUL") {
-        const message = `Payment Reference: ${info.paymentReference}\nAmount Paid: ₦${(info.amountPaid || 0).toLocaleString()}\nStatus: ${info.status}`;
-        showPaymentResult(false, message);
+      const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(reference)}`);
+      // if non-OK response, treat as failure and show popup
+      if (!res.ok) {
+        showPaymentResult(false, "Unable to verify payment (network/backend error).");
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
       }
 
+      const data = await res.json();
+
+      // If backend says success AND status is SUCCESS/SUCCESSFUL, ignore here (index will handle success)
+      const status = (data && data.status) || (data.data && data.data.status) || "";
+      const isSuccessFlag = data && data.success === true;
+      const statusUpper = (status || "").toString().toUpperCase();
+
+      if (isSuccessFlag && (statusUpper === "SUCCESS" || statusUpper === "SUCCESSFUL")) {
+        // Payment succeeded → index.html should handle success pop-up. Do nothing here.
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      // Any other result → show failure popup
+      // Attempt to extract useful details for message
+      const paymentObj = data && data.data ? data.data : {};
+      const paymentRef = paymentObj.paymentReference || reference;
+      const amountPaid = paymentObj.amountPaid ?? paymentObj.amount ?? 0;
+      const humanMsg = `Payment Reference: ${paymentRef}\nAmount Paid: ₦${Number(amountPaid).toLocaleString()}\nStatus: ${data.status || paymentObj.status || "FAILED/UNKNOWN"}`;
+
+      showPaymentResult(false, humanMsg);
+
+      // Remove query param so popup won't re-run if user refreshes
       window.history.replaceState({}, document.title, window.location.pathname);
     } catch (err) {
       console.error("Verification error:", err);
       showPaymentResult(false, "Unable to verify payment. Try again.");
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   });
 
