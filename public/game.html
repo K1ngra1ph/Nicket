@@ -218,8 +218,7 @@
   */
   window.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const reference = urlParams.get("reference"); // backend uses `reference` param
-
+    const reference = urlParams.get("paymentReference") || urlParams.get("reference") || urlParams.get("transactionReference");
     if (!reference) return;
 
     try {
