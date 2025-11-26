@@ -292,8 +292,9 @@
 
   <button class="contact-btn" onclick="window.location.href='contact.html'">Contact Us</button>
 
+<script src="js/payment.js"></script>
+<script>showPaymentStatus();</script>
 <script>
-/* ========================= THEME TOGGLE ========================= */
 const themeToggle = document.getElementById("themeToggle");
 if (localStorage.getItem("theme") === "dark") {
   document.body.classList.add("dark");
@@ -408,7 +409,7 @@ async function verifyPayment(reference) {
   let attempts = 0;
   const maxAttempts = 5;
 
-  While (attempts < maxAttempts) {
+  while (attempts < maxAttempts) {
     attempts++;
     try {
       const response = await fetch(
@@ -428,7 +429,6 @@ async function verifyPayment(reference) {
   }
   
   window.location.href = `game.html?failed=true&reference=${reference}`;
-  }
 }
 </script>
 </body>
