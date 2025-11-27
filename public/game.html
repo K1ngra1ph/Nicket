@@ -208,7 +208,7 @@ document.getElementById("closeModalBtn").onclick =
 document.getElementById("cancelBtn").onclick =
   () => confirmModal.style.display = "none";
 
-/* ========================= RESULT MODAL (FAIL ONLY) ========================= */
+/* ========================= FAILURE MODAL ONLY ========================= */
 function showPaymentResult(success, message) {
   const modal = document.getElementById("paymentResultModal");
   const title = document.getElementById("paymentResultTitle");
@@ -216,84 +216,57 @@ function showPaymentResult(success, message) {
   const buttonsDiv = document.getElementById("paymentResultButtons");
   const iconDiv = document.getElementById("paymentIcon");
 
-  title.textContent = success ? "Payment Successful!" : "Payment Failed!";
+  title.textContent = "Payment Failed!";
   msg.textContent = message || "";
 
-  iconDiv.innerHTML = success ? "✅" : "❌";
-  iconDiv.style.color = success ? "#22c55e" : "#ef4444";
+  iconDiv.innerHTML = "❌";
+  iconDiv.style.color = "#ef4444";
 
   buttonsDiv.innerHTML = "";
 
-  if (success) {
-    const okBtn = document.createElement("button");
-    okBtn.textContent = "OK";
-    okBtn.className = "success";
-    okBtn.onclick = () => window.location.href = "/";
-    buttonsDiv.appendChild(okBtn);
-  } else {
-    const tryBtn = document.createElement("button");
-    tryBtn.textContent = "Try Again";
-    tryBtn.className = "accent";
-    tryBtn.onclick = () => { modal.style.display = "none"; submitBtn.click(); };
+  const tryBtn = document.createElement("button");
+  tryBtn.textContent = "Try Again";
+  tryBtn.className = "accent";
+  tryBtn.onclick = () => { modal.style.display = "none"; submitBtn.click(); };
 
-    const homeBtn = document.createElement("button");
-    homeBtn.textContent = "Home";
-    homeBtn.className = "danger";
-    homeBtn.onclick = () => window.location.href = "/";
+  const homeBtn = document.createElement("button");
+  homeBtn.textContent = "Home";
+  homeBtn.className = "danger";
+  homeBtn.onclick = () => window.location.href = "/";
 
-    buttonsDiv.appendChild(tryBtn);
-    buttonsDiv.appendChild(homeBtn);
-  }
+  buttonsDiv.appendChild(tryBtn);
+  buttonsDiv.appendChild(homeBtn);
 
   modal.style.display = "flex";
 }
 
-/* ========================= VERIFY PAYMENT (FAIL ONLY) ========================= */
+/* ========================= FAILURE DETECTOR ONLY ========================= */
 window.addEventListener("DOMContentLoaded", async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const reference =
-    urlParams.get("paymentReference") ||
-    urlParams.get("reference") ||
-    urlParams.get("transactionReference");
+  const params = new URLSearchParams(window.location.search);
+  const failed = params.get("failed");
+  const reference = params.get("paymentReference");
 
-  if (!reference) return;
+  if (!failed || !reference) return;
 
   try {
     const res = await fetch(
-      `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(reference)}`
+      `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`
     );
 
-    if (!res.ok) {
-      showPaymentResult(false, "Unable to verify payment (network/backend error).");
-      window.history.replaceState({}, document.title, window.location.pathname);
-      return;
-    }
-
     const data = await res.json();
-    const status = (data.status || "").toString().toUpperCase();
-    const isSuccess = data.success === true && (status === "SUCCESS" || status === "SUCCESSFUL");
+    const status = (data.status || "").toUpperCase();
 
-    if (isSuccess) {
-      // SUCCESS belongs to index.html ONLY
-      window.history.replaceState({}, document.title, window.location.pathname);
+    if (data.success === true && (status === "SUCCESS" || status === "SUCCESSFUL")) {
+      window.location.href = `index.html?paymentReference=${reference}`;
       return;
     }
 
-    // FAILURE → show popup
-    const p = data.data || {};
-    const amount = p.amountPaid ?? p.amount ?? 0;
-
-    const msg = `Payment Reference: ${p.paymentReference || reference}
-Amount Paid: ₦${Number(amount).toLocaleString()}
-Status: ${data.status || p.status || "FAILED/UNKNOWN"}`;
-
-    showPaymentResult(false, msg);
-    window.history.replaceState({}, document.title, window.location.pathname);
-  } catch (err) {
-    console.error("Verify error:", err);
-    showPaymentResult(false, "Unable to verify payment. Try again.");
-    window.history.replaceState({}, document.title, window.location.pathname);
+    showPaymentResult(false, `Payment Failed\nReference: ${reference}`);
+  } catch {
+    showPaymentResult(false, "Unable to verify payment.");
   }
+
+  window.history.replaceState({}, document.title, window.location.pathname);
 });
 
 /* ========================= INIT PAYMENT ========================= */
@@ -305,16 +278,23 @@ document.getElementById("confirmPaymentBtn").addEventListener("click", async () 
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue, selectedNumbers })
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        amount: totalAmount,
+        eventValue,
+        selectedNumbers
+      })
     });
 
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-    const data = await res.json();
 
+    const data = await res.json();
     if (!data.checkoutUrl) throw new Error("Missing checkout URL");
+
     window.location.href = data.checkoutUrl;
-  } catch (err) {
-    console.error("Payment error:", err);
+  } catch {
     showPaymentResult(false, "Unable to initialize payment. Try again.");
   }
 });
