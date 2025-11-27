@@ -85,6 +85,13 @@
     </div>
   </div>
 
+  <div id="feedbackModal">
+  <h2 id="modalTitle"></h2>
+  <p id="modalMessage"></p>
+  <button id="modalCloseBtn">Close</button>
+</div>
+
+
   <!-- Payment Result Modal -->
   <div id="paymentResultModal">
     <div class="modal-content result-modal">
@@ -132,7 +139,7 @@ const numbers = Array.from({ length: 100 }, (_, i) => ({
   globalCount: 0
 }));
 
-const selectedNumbers = [];
+const selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers") || "[]");
 
 function renderGrid() {
   grid.innerHTML = "";
@@ -141,7 +148,7 @@ function renderGrid() {
     box.className = "number-box";
     box.textContent = item.number;
 
-    if (item.globalCount >= 10) {
+    if (item.globalCount >= 10 || selectedNumbers.includes(item.number)) {
       box.classList.add("disabled");
     } else {
       box.addEventListener("click", () => selectNumber(item));
@@ -152,7 +159,7 @@ function renderGrid() {
 }
 
 function selectNumber(item) {
-  if (item.globalCount >= 10) return;
+  if (item.globalCount >= 10 || selectedNumbers.includes(item.number)) return;
   selectedNumbers.push(item.number);
   item.globalCount++;
   updateSelectedList();
@@ -176,7 +183,6 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   numbers.forEach(n => n.globalCount = 0);
   updateSelectedList();
   renderGrid();
-
   localStorage.setItem("selectedNumbers", JSON.stringify([]));
 });
 
@@ -313,6 +319,7 @@ document.getElementById("confirmPaymentBtn").addEventListener("click", async () 
   }
 });
 
+updateSelectedList();
 renderGrid();
 </script>
 </body>
