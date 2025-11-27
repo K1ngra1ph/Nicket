@@ -295,28 +295,27 @@
 <script src="js/payment.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(window.location.search);
-  const reference = params.get("paymentReference");
-
-  if (reference) {
-    try {
-      const res = await fetch(
-        `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`
-      );
-      const data = await res.json();
-
-      if (data.success) {
-        showPaymentResult(true, "Your payment was confirmed successfully 🎉");
-      } else {
-        window.location.href = `game.html?failed=true&paymentReference=${reference}`;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get("paymentReference");
+    if (reference) {
+      try {
+        const { ok, data } = await payment_verify(reference);
+        if (ata && data.success === true) {
+          payment_showSuccess("Your payment was confirmed successfully 🎉");
+        } else {
+          window.location.href = `game.html?failed=true&paymentReference=${encodeURIComponent(reference)}`;
+          return;
+        }
+      } catch (err) {
+        window.location.href = `game.html?failed=true&paymentReference=${encodeURIComponent(reference)}`;
         return;
       }
-    } catch {
-      window.location.href = `game.html?failed=true&paymentReference=${reference}`;
-      return;
     }
+  } catch (e) {
+    console.error("Index verification error:", e);
   }
-
+  
   /* ===== THEME TOGGLE ===== */
   const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) {
