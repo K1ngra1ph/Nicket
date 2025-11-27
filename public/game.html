@@ -157,6 +157,7 @@ function selectNumber(item) {
   item.globalCount++;
   updateSelectedList();
   renderGrid();
+  localStorage.setItem("selectedNumbers", JSON.stringify(selectedNumbers));
 }
 
 function updateSelectedList() {
@@ -175,6 +176,8 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   numbers.forEach(n => n.globalCount = 0);
   updateSelectedList();
   renderGrid();
+
+  localStorage.setItem("selectedNumbers", JSON.stringify([]));
 });
 
 /* ========================= CONFIRM MODAL ========================= */
