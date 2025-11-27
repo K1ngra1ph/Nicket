@@ -208,39 +208,7 @@ document.getElementById("closeModalBtn").onclick =
 document.getElementById("cancelBtn").onclick =
   () => confirmModal.style.display = "none";
 
-/* ========================= FAILURE MODAL ONLY ========================= */
-function showPaymentResult(success, message) {
-  const modal = document.getElementById("paymentResultModal");
-  const title = document.getElementById("paymentResultTitle");
-  const msg = document.getElementById("paymentResultMessage");
-  const buttonsDiv = document.getElementById("paymentResultButtons");
-  const iconDiv = document.getElementById("paymentIcon");
-
-  title.textContent = "Payment Failed!";
-  msg.textContent = message || "";
-
-  iconDiv.innerHTML = "❌";
-  iconDiv.style.color = "#ef4444";
-
-  buttonsDiv.innerHTML = "";
-
-  const tryBtn = document.createElement("button");
-  tryBtn.textContent = "Try Again";
-  tryBtn.className = "accent";
-  tryBtn.onclick = () => { modal.style.display = "none"; submitBtn.click(); };
-
-  const homeBtn = document.createElement("button");
-  homeBtn.textContent = "Home";
-  homeBtn.className = "danger";
-  homeBtn.onclick = () => window.location.href = "/";
-
-  buttonsDiv.appendChild(tryBtn);
-  buttonsDiv.appendChild(homeBtn);
-
-  modal.style.display = "flex";
-}
-
-/* ========================= FAILURE DETECTOR ONLY ========================= */
+/* ========================= FAILURE DETECTOR (game.html only) ========================= */
 window.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const failed = params.get("failed");
@@ -249,56 +217,47 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (!failed || !reference) return;
 
   try {
-    const res = await fetch(
-      `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`
-    );
+    const { ok, data } = await payment_verify(reference);
+    const status = (data?.status || "").toString().toUpperCase();
 
-    const data = await res.json();
-    const status = (data.status || "").toUpperCase();
-
-    if (data.success === true && (status === "SUCCESS" || status === "SUCCESSFUL")) {
-      window.location.href = `index.html?paymentReference=${reference}`;
+    if (data?.success === true && (status === "SUCCESS" || status === "SUCCESSFUL")) {
+      window.location.href = `index.html?paymentReference=${encodeURIComponent(reference)}`;
       return;
     }
-
-    showPaymentResult(false, `Payment Failed\nReference: ${reference}`);
-  } catch {
-    showPaymentResult(false, "Unable to verify payment.");
+    const p = data?.data || {};
+    const amount = p?.amountPaid ?? p?.amount ?? 0;
+    const humanMsg = `Payment Reference: ${p?.paymentReference || reference}\nAmount Paid: ₦${Number(amount).toLocaleString()}\nStatus: ${data?.status || p?.status || "FAILED/UNKNOWN"}`;
+    payment_showFailure(humanMsg);
+  } catch (err) {
+    console.error("Failure verify error:", err);
+    payment_showFailure("Unable to verify payment. Try again.");
+  } finally {
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
-
-  window.history.replaceState({}, document.title, window.location.pathname);
 });
 
-/* ========================= INIT PAYMENT ========================= */
-document.getElementById("confirmPaymentBtn").addEventListener("click", async () => {
-  confirmModal.style.display = "none";
+/* ========================= INITIATE PAYMENT (confirmPaymentBtn) ========================= */
+document.getElementById("confirmPaymentBtn")?.addEventListener("click", async () => {
+  if (confirmModal) confirmModal.style.display = "none";
   const totalAmount = selectedNumbers.length * 1000;
 
   try {
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        email,
-        phone,
-        amount: totalAmount,
-        eventValue,
-        selectedNumbers
-      })
+      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue, selectedNumbers })
     });
 
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-
     const data = await res.json();
     if (!data.checkoutUrl) throw new Error("Missing checkout URL");
-
     window.location.href = data.checkoutUrl;
-  } catch {
-    showPaymentResult(false, "Unable to initialize payment. Try again.");
+  } catch (err) {
+    console.error("Payment error:", err);
+    payment_showFailure("Unable to initialize payment. Try again.");
   }
 });
-
+  
 updateSelectedList();
 renderGrid();
 </script>
