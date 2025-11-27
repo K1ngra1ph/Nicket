@@ -294,7 +294,29 @@
 
 <script src="js/payment.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const reference = params.get("paymentReference");
+
+  if (reference) {
+    try {
+      const res = await fetch(
+        `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        showPaymentResult(true, "Your payment was confirmed successfully 🎉");
+      } else {
+        window.location.href = `game.html?failed=true&paymentReference=${reference}`;
+        return;
+      }
+    } catch {
+      window.location.href = `game.html?failed=true&paymentReference=${reference}`;
+      return;
+    }
+  }
+
   /* ===== THEME TOGGLE ===== */
   const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) {
@@ -336,6 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showModal(name, eventValue, email, phone, countryCode) {
     if (!feedbackModal) return;
+
     modalTitle.textContent = "Registration Successful 🎉";
     modalMessage.innerHTML = `
       <p>Thank you, <strong>${name}</strong>! You’ve successfully registered for
@@ -366,6 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
     feedbackModal.classList.remove("show");
     setTimeout(() => window.location.href = "game.html", 300);
   };
+
   if (closeModalBtn) closeModalBtn.onclick = () => feedbackModal.classList.remove("show");
 
   /* ===== FORM SUBMISSION ===== */
@@ -373,6 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (submitBtn) {
     submitBtn.addEventListener('click', e => {
       e.preventDefault();
+
       const name = document.getElementById('name').value.trim();
       const email = document.getElementById('email').value.trim();
       const phone = document.getElementById('phone').value.trim();
@@ -391,46 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== PAYMENT VERIFICATION (SUCCESS POPUP) ===== */
-  const urlParams = new URLSearchParams(window.location.search);
-  const reference = urlParams.get("paymentReference");
-
-  async function verifyPayment(reference) {
-    let attempts = 0;
-    const maxAttempts = 5;
-
-    while (attempts < maxAttempts) {
-      attempts++;
-      try {
-        const response = await fetch(
-          `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`
-        );
-        const data = await response.json();
-
-        if (data.success) {
-          const successPaymentModal = document.getElementById("successPaymentModal");
-          const paymentSuccessMessage = document.getElementById("paymentSuccessMessage");
-          const closePaymentSuccess = document.getElementById("closePaymentSuccess");
-          const paymentSuccessOk = document.getElementById("paymentSuccessOk");
-
-          if (paymentSuccessMessage) paymentSuccessMessage.textContent = "Your payment was confirmed successfully 🎉";
-          if (successPaymentModal) successPaymentModal.classList.add("show");
-
-          if (closePaymentSuccess) closePaymentSuccess.onclick = () => successPaymentModal.classList.remove("show");
-          if (paymentSuccessOk) paymentSuccessOk.onclick = () => successPaymentModal.classList.remove("show");
-          return;
-        }
-        if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 3000));
-      } catch (err) {
-        console.error("Verification error:", err);
-        break;
-      }
-    }
-
-    window.location.href = `game?failed=true&reference=${reference}`;
-  }
-
-  if (reference) verifyPayment(reference);
 });
 </script>
 </body>
