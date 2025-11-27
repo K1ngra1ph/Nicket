@@ -18,25 +18,35 @@ const paymentIcon = document.getElementById("paymentIcon");
 
 /* ========================= SAFE ONCLICK BINDINGS ========================= */
 closePaymentSuccess?.addEventListener("click", () => {
-  successPaymentModal.classList.remove("show");
+  successPaymentModal?.classList.remove("show");
 });
 paymentSuccessOk?.addEventListener("click", () => {
-  successPaymentModal.classList.remove("show");
+  successPaymentModal?.classList.remove("show");
 });
+
+modalCloseBtn?.addEventListener("click", () => {
+  feedbackModal?.classList.remove("show");
+  setTimeout(() => window.location.href = "game.html", 300);
+});
+closeModalBtn?.addEventListener("click", () => feedbackModal?.classList.remove("show"));
 
 /* ========================= MODAL FUNCTIONS ========================= */
 function showPaymentSuccess(msg = "Your payment was successful!") {
+  if (!paymentSuccessMessage || !successPaymentModal) return;
   paymentSuccessMessage.textContent = msg;
   successPaymentModal.classList.add("show");
 }
 
 function showPaymentResult(success, message) {
+  if (!paymentResultModal || !paymentResultTitle || !paymentResultMessage || !paymentResultButtons || !paymentIcon) return;
+
   paymentResultTitle.textContent = success ? "Payment Successful!" : "Payment Failed!";
   paymentResultMessage.textContent = message || "";
   paymentIcon.innerHTML = success ? "✅" : "❌";
   paymentIcon.style.color = success ? "#22c55e" : "#ef4444";
 
   paymentResultButtons.innerHTML = "";
+
   if (success) {
     const okBtn = document.createElement("button");
     okBtn.textContent = "OK";
@@ -47,7 +57,10 @@ function showPaymentResult(success, message) {
     const tryBtn = document.createElement("button");
     tryBtn.textContent = "Try Again";
     tryBtn.className = "accent";
-    tryBtn.onclick = () => { paymentResultModal.style.display = "none"; document.getElementById("submitBtn")?.click(); };
+    tryBtn.onclick = () => { 
+      paymentResultModal.style.display = "none"; 
+      document.getElementById("submitBtn")?.click(); 
+    };
 
     const homeBtn = document.createElement("button");
     homeBtn.textContent = "Home";
@@ -63,6 +76,8 @@ function showPaymentResult(success, message) {
 
 /* ========================= REGISTRATION MODAL ========================= */
 function showModal(name, eventValue, email, phone, countryCode) {
+  if (!modalTitle || !modalMessage || !feedbackModal) return;
+
   modalTitle.textContent = "Registration Successful 🎉";
   modalMessage.innerHTML = `
     <p style="font-size:16px; line-height:1.6;">
@@ -81,25 +96,20 @@ function showModal(name, eventValue, email, phone, countryCode) {
   feedbackModal.classList.add("show");
 }
 
-modalCloseBtn?.addEventListener("click", () => {
-  feedbackModal.classList.remove("show");
-  setTimeout(() => window.location.href = "game.html", 300);
-});
-closeModalBtn?.addEventListener("click", () => feedbackModal.classList.remove("show"));
-
 /* ========================= FORM SUBMISSION ========================= */
 document.getElementById('submitBtn')?.addEventListener('click', e => {
   e.preventDefault();
-  const name = document.getElementById('name').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const countryCode = document.getElementById('countryCode').value.trim();
-  const eventValue = document.getElementById('event').value.trim();
+
+  const name = document.getElementById('name')?.value.trim() || "";
+  const email = document.getElementById('email')?.value.trim() || "";
+  const phone = document.getElementById('phone')?.value.trim() || "";
+  const countryCode = document.getElementById('countryCode')?.value.trim() || "";
+  const eventValue = document.getElementById('event')?.value.trim() || "";
 
   if (!name || !email || !phone || !eventValue) {
     modalTitle.textContent = "Error";
     modalMessage.textContent = "Please fill in all required fields.";
-    feedbackModal.classList.add("show");
+    feedbackModal?.classList.add("show");
     return;
   }
 
@@ -109,7 +119,6 @@ document.getElementById('submitBtn')?.addEventListener('click', e => {
 /* ========================= PAYMENT INITIATION ========================= */
 document.getElementById("confirmPaymentBtn")?.addEventListener("click", async () => {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-
   const selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers") || "[]");
 
   if (!userData.name || selectedNumbers.length === 0) {
@@ -123,18 +132,14 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        ...userData,
-        selectedNumbers,
-        amount: totalAmount
-      })
+      body: JSON.stringify({ ...userData, selectedNumbers, amount: totalAmount })
     });
 
     const data = await res.json();
     if (!res.ok || !data.checkoutUrl) throw new Error();
 
     window.location.href = data.checkoutUrl;
-  } catch (err) {
+  } catch {
     showPaymentResult(false, "Unable to start payment.");
   }
 });
@@ -142,7 +147,7 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
 /* ========================= PAYMENT VERIFICATION ========================= */
 async function verifyPayment(reference) {
   try {
-    const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`);
+    const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(reference)}`);
     const data = await res.json();
 
     if (data.success) {
