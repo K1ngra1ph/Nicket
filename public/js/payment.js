@@ -1,3 +1,4 @@
+/* ========================= MODAL ELEMENTS ========================= */
 const feedbackModal = document.getElementById('feedbackModal');
 const modalTitle = document.getElementById('modalTitle');
 const modalMessage = document.getElementById('modalMessage');
@@ -15,62 +16,19 @@ const paymentResultMessage = document.getElementById("paymentResultMessage");
 const paymentResultButtons = document.getElementById("paymentResultButtons");
 const paymentIcon = document.getElementById("paymentIcon");
 
-/* ========================= GAME LOGIC ========================= */
-const grid = document.getElementById("numberGrid");
-const selectedList = document.getElementById("selectedList");
-const totalValueEl = document.getElementById("totalValue");
-const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
-const selectedNumbers = [];
-
-function renderGrid() {
-  if (!grid) return;
-  grid.innerHTML = "";
-  numbers.forEach(item => {
-    const box = document.createElement("div");
-    box.className = "number-box";
-    box.textContent = item.number;
-    if (item.globalCount >= 10) box.classList.add("disabled");
-    else box.addEventListener("click", () => selectNumber(item));
-    grid.appendChild(box);
-  });
-}
-
-function selectNumber(item) {
-  if (item.globalCount >= 10) return;
-  selectedNumbers.push(item.number);
-  item.globalCount++;
-  updateSelectedList();
-  renderGrid();
-}
-
-function updateSelectedList() {
-  if (!selectedList || !totalValueEl) return;
-  selectedList.innerHTML = "";
-  selectedNumbers.forEach(n => { 
-    const span = document.createElement("span"); 
-    span.textContent = n; 
-    selectedList.appendChild(span); 
-  });
-  totalValueEl.textContent = `Total: ₦${(selectedNumbers.length * 1000).toLocaleString()}`;
-}
-
-if (document.getElementById("clearBtn")) {
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    selectedNumbers.length = 0;
-    numbers.forEach(n => n.globalCount = 0);
-    updateSelectedList();
-    renderGrid();
-  });
-}
+/* ========================= SAFE ONCLICK BINDINGS ========================= */
+closePaymentSuccess?.addEventListener("click", () => {
+  successPaymentModal.classList.remove("show");
+});
+paymentSuccessOk?.addEventListener("click", () => {
+  successPaymentModal.classList.remove("show");
+});
 
 /* ========================= MODAL FUNCTIONS ========================= */
 function showPaymentSuccess(msg = "Your payment was successful!") {
   paymentSuccessMessage.textContent = msg;
   successPaymentModal.classList.add("show");
 }
-
-closePaymentSuccess.onclick = () => successPaymentModal.classList.remove("show");
-paymentSuccessOk.onclick = () => successPaymentModal.classList.remove("show");
 
 function showPaymentResult(success, message) {
   paymentResultTitle.textContent = success ? "Payment Successful!" : "Payment Failed!";
@@ -90,10 +48,12 @@ function showPaymentResult(success, message) {
     tryBtn.textContent = "Try Again";
     tryBtn.className = "accent";
     tryBtn.onclick = () => { paymentResultModal.style.display = "none"; document.getElementById("submitBtn")?.click(); };
+
     const homeBtn = document.createElement("button");
     homeBtn.textContent = "Home";
     homeBtn.className = "danger";
     homeBtn.onclick = () => window.location.href = "/";
+
     paymentResultButtons.appendChild(tryBtn);
     paymentResultButtons.appendChild(homeBtn);
   }
@@ -101,6 +61,7 @@ function showPaymentResult(success, message) {
   paymentResultModal.style.display = "flex";
 }
 
+/* ========================= REGISTRATION MODAL ========================= */
 function showModal(name, eventValue, email, phone, countryCode) {
   modalTitle.textContent = "Registration Successful 🎉";
   modalMessage.innerHTML = `
@@ -108,16 +69,6 @@ function showModal(name, eventValue, email, phone, countryCode) {
       Thank you, <strong>${name}</strong>! You’ve successfully registered for
       <strong>${eventValue}</strong>.
     </p>
-    <div style="background:#f1f5f9; padding:12px 15px; border-radius:8px; margin-top:15px; text-align:left;">
-      <h4 style="margin:0 0 8px;">🎮 Game Rules:</h4>
-      <ul style="margin:0; padding-left:20px; line-height:1.6;">
-        <li>Pick your numbers carefully — once submitted, you can’t change them.</li>
-        <li>Winners will be announced before the event day.</li>
-        <li>Ensure your contact details are correct to receive your VIP/Backstage ticket.</li>
-        <li>Incomplete or invalid registrations may be disqualified.</li>
-      </ul>
-    </div>
-    <p style="margin-top:18px;">Click <strong>OK</strong> to continue to the game page.</p>
   `;
 
   localStorage.setItem("userData", JSON.stringify({
@@ -130,11 +81,11 @@ function showModal(name, eventValue, email, phone, countryCode) {
   feedbackModal.classList.add("show");
 }
 
-modalCloseBtn.onclick = () => {
+modalCloseBtn?.addEventListener("click", () => {
   feedbackModal.classList.remove("show");
   setTimeout(() => window.location.href = "game.html", 300);
-};
-closeModalBtn.onclick = () => feedbackModal.classList.remove("show");
+});
+closeModalBtn?.addEventListener("click", () => feedbackModal.classList.remove("show"));
 
 /* ========================= FORM SUBMISSION ========================= */
 document.getElementById('submitBtn')?.addEventListener('click', e => {
@@ -147,7 +98,6 @@ document.getElementById('submitBtn')?.addEventListener('click', e => {
 
   if (!name || !email || !phone || !eventValue) {
     modalTitle.textContent = "Error";
-    modalTitle.style.color = "#dc2626";
     modalMessage.textContent = "Please fill in all required fields.";
     feedbackModal.classList.add("show");
     return;
@@ -159,10 +109,14 @@ document.getElementById('submitBtn')?.addEventListener('click', e => {
 /* ========================= PAYMENT INITIATION ========================= */
 document.getElementById("confirmPaymentBtn")?.addEventListener("click", async () => {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+
+  const selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers") || "[]");
+
   if (!userData.name || selectedNumbers.length === 0) {
     showPaymentResult(false, "Please select numbers and register first.");
     return;
   }
+
   const totalAmount = selectedNumbers.length * 1000;
 
   try {
@@ -170,55 +124,38 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        eventValue: userData.eventValue,
+        ...userData,
         selectedNumbers,
         amount: totalAmount
       })
     });
 
-    if (!res.ok) throw new Error(`Backend error: ${res.status}`);
     const data = await res.json();
-    if (!data.checkoutUrl) throw new Error("Missing checkout URL from backend");
+    if (!res.ok || !data.checkoutUrl) throw new Error();
+
     window.location.href = data.checkoutUrl;
   } catch (err) {
-    console.error("Payment initiation error:", err);
-    showPaymentResult(false, "Unable to start payment. Try again.");
+    showPaymentResult(false, "Unable to start payment.");
   }
 });
 
 /* ========================= PAYMENT VERIFICATION ========================= */
 async function verifyPayment(reference) {
-  let attempts = 0;
-  const maxAttempts = 5;
+  try {
+    const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`);
+    const data = await res.json();
 
-  while (attempts < maxAttempts) {
-    attempts++;
-    try {
-      const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${reference}`);
-      const data = await res.json();
-
-      if (data.success) {
-        showPaymentSuccess("Your payment was confirmed successfully 🎉");
-        return;
-      }
-      if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 3000));
-    } catch (err) {
-      console.error("Verification error:", err);
-      break;
+    if (data.success) {
+      showPaymentSuccess("Your payment was confirmed successfully 🎉");
+    } else {
+      showPaymentResult(false, "Payment not found or failed.");
     }
+  } catch {
+    showPaymentResult(false, "Verification error.");
   }
-  // If verification fails after retries → redirect to game page with fail modal
-  window.location.href = `game.html?failed=true&reference=${reference}`;
 }
 
-/* ========================= CHECK PAYMENT ON PAGE LOAD ========================= */
+/* ========================= CHECK PAYMENT ON LOAD ========================= */
 const urlParams = new URLSearchParams(window.location.search);
 const reference = urlParams.get("paymentReference") || urlParams.get("reference");
 if (reference) verifyPayment(reference);
-
-/* ========================= INITIALIZE GRID ========================= */
-renderGrid();
-updateSelectedList();
