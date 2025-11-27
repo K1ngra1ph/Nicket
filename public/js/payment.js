@@ -1,74 +1,85 @@
-function $(id) {
+function $id(id) {
   return document.getElementById(id);
 }
 
-/* ========================= MODALS ========================= */
-const resultModal = $("paymentResultModal");
-const resultTitle = $("paymentResultTitle");
-const resultMsg = $("paymentResultMessage");
-const resultButtons = $("paymentResultButtons");
-const resultIcon = $("paymentIcon");
-
-/* ========================= SHOW RESULT ========================= */
-function showPaymentResult(success, message) {
-  if (!resultModal) return;
-
-  resultTitle.textContent = success ? "Payment Successful!" : "Payment Failed!";
-  resultMsg.textContent = message || "";
-  resultIcon.innerHTML = success ? "✅" : "❌";
-  resultIcon.style.color = success ? "#28a745" : "#dc3545";
-
-  resultButtons.innerHTML = "";
-
-  if (success) {
-    const ok = document.createElement("button");
-    ok.textContent = "OK";
-    ok.onclick = () => (window.location.href = "index.html");
-    resultButtons.appendChild(ok);
-  } else {
-    const retry = document.createElement("button");
-    retry.textContent = "Try Again";
-    retry.onclick = () => window.location.reload();
-
-    const home = document.createElement("button");
-    home.textContent = "Home";
-    home.onclick = () => (window.location.href = "index.html");
-
-    resultButtons.appendChild(retry);
-    resultButtons.appendChild(home);
-  }
-
-  resultModal.style.display = "flex";
+async function payment_verify(reference) {
+  if (!reference) throw new Error("Missing reference");
+  const url = `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(reference)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return { ok: res.ok, status: res.status, data };
 }
 
-/* ========================= VERIFY PAYMENT ========================= */
-async function verifyPayment(reference) {
-  try {
-    const res = await fetch(
-      `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(reference)}`
-    );
+/* ========================= SUCCESS MODAL (index.html) ========================= */
+function payment_showSuccess(message = "Your payment was confirmed successfully 🎉") {
+  const modal = $id("successPaymentModal");
+  const msgEl = $id("paymentSuccessMessage");
+  const closeBtn = $id("closePaymentSuccess");
+  const okBtn = $id("paymentSuccessOk");
 
-    if (!res.ok) {
-      showPaymentResult(false, "Verification error.");
-      return;
-    }
+  if (!modal) return;
 
-    const data = await res.json();
+  if (msgEl) msgEl.textContent = message;
+  modal.classList.add("show");
+  modal.style.display = "flex";
 
-    if (data.success) {
-      showPaymentResult(true, "Payment confirmed successfully.");
-    } else {
-      showPaymentResult(false, "Payment failed or not found.");
-    }
-  } catch {
-    showPaymentResult(false, "Unable to verify payment at this time.");
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      modal.classList.remove("show");
+      modal.style.display = "none";
+    };
+  }
+  if (okBtn) {
+    okBtn.onclick = () => {
+      modal.classList.remove("show");
+      modal.style.display = "none";
+    };
   }
 }
 
-/* ========================= CHECK ON PAGE LOAD ========================= */
-(function () {
-  const params = new URLSearchParams(window.location.search);
-  const ref = params.get("paymentReference");
+/* ========================= FAILURE MODAL (game.html) ========================= */
+function payment_showFailure(message = "Payment failed or could not be verified.") {
+  const modal = $id("paymentResultModal");
+  const title = $id("paymentResultTitle");
+  const msgEl = $id("paymentResultMessage");
+  const buttons = $id("paymentResultButtons");
+  const icon = $id("paymentIcon");
 
-  if (ref) verifyPayment(ref);
-})();
+  if (!modal) {
+    alert(message);
+    return;
+  }
+
+  if (title) title.textContent = "Payment Failed!";
+  if (msgEl) msgEl.textContent = message;
+  if (icon) {
+    icon.innerHTML = "❌";
+    icon.style.color = "#ef4444";
+  }
+
+  if (buttons) {
+    buttons.innerHTML = "";
+
+    const tryBtn = document.createElement("button");
+    tryBtn.type = "button";
+    tryBtn.className = "accent";
+    tryBtn.textContent = "Try Again";
+    tryBtn.onclick = () => {
+      modal.style.display = "none";
+      const submitBtn = $id("submitBtn");
+      if (submitBtn) submitBtn.click();
+      else window.location.reload();
+    };
+
+    const homeBtn = document.createElement("button");
+    homeBtn.type = "button";
+    homeBtn.className = "danger";
+    homeBtn.textContent = "Home";
+    homeBtn.onclick = () => (window.location.href = "/");
+
+    buttons.appendChild(tryBtn);
+    buttons.appendChild(homeBtn);
+  }
+
+  modal.style.display = "flex";
+}
