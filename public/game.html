@@ -241,6 +241,11 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
   if (confirmModal) confirmModal.style.display = "none";
   const totalAmount = selectedNumbers.length * 1000;
 
+  const numbersToSend = selectedNumbers.map(n => Number(n));
+  if (!numbersToSend.every(n => Number.isInteger (n) && n > 0)) {
+    return payment_showFailure("Invalid selected numbers.");
+  }
+
   try {
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
