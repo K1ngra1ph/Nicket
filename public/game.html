@@ -95,15 +95,6 @@
   </div>
 </div>
 
-<!-- Feedback Modal -->
-<div id="feedbackModal" class="modal">
-  <div class="modal-content">
-    <h2 id="modalTitle"></h2>
-    <p id="modalMessage"></p>
-    <button id="modalCloseBtn">Close</button>
-  </div>
-</div>
-
 <!-- Payment Result Modal -->
 <div id="paymentResultModal" class="modal">
   <div class="modal-content result-modal">
@@ -162,7 +153,7 @@ function renderGrid() {
   numbers.forEach(item => {
     const box = document.createElement("div");
     box.className = "number-box";
-    box.textContent = item.number;
+    box.textContent = `${item.number} (${item.globalCount})`;
 
     if (item.globalCount >= 10 || selectedNumbers.includes(item.number)) {
       box.classList.add("disabled");
@@ -185,9 +176,14 @@ function selectNumber(item) {
 
 function updateSelectedList() {
   selectedList.innerHTML = "";
+  const countMap = {};
   selectedNumbers.forEach(n => {
+    countMap[n] = (countMap[n] || 0) + 1;
+  });
+
+  Object.keys(countMap).forEach(n => {
     const span = document.createElement("span");
-    span.textContent = n;
+    span.textContent = `${n} (x${countMap[n]})`;
     selectedList.appendChild(span);
   });
 
