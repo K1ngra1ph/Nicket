@@ -59,49 +59,65 @@
 </head>
 
 <body>
-  <img src="assets/images/nicket-logo.png" class="logo">
-  <button id="themeToggle">🌙</button>
-  <p>Hi, <strong id="userName"></strong>!</p>
+<img src="assets/images/nicket-logo.png" class="logo" alt="Nicket Logo">
 
-  <div id="numberGrid"></div>
+<button id="themeToggle">🌙</button>
 
-  <div id="selectedNumbers">
-    <strong>Your Selections:</strong>
-    <div id="selectedList"></div>
-    <div id="totalValue">Total: ₦0</div>
-  </div>
+<p>Hi, <strong id="userName"></strong>!</p>
 
-  <button id="submitBtn">Let's GO!</button>
-  <button id="clearBtn">Clear Picks</button>
+<!-- Number Grid -->
+<div id="numberGrid"></div>
 
-  <!-- Confirmation Modal -->
-  <div id="confirmModal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeModalBtn">×</span>
-      <h3>Confirm your details</h3>
-      <div id="confirmDetails" style="text-align:left;margin-top:10px;"></div>
+<!-- Selected Numbers Box -->
+<div id="selectedNumbers">
+  <strong>Your Selections:</strong>
+  <div id="selectedList"></div>
+  <div id="totalValue">Total: ₦0</div>
+</div>
+
+<!-- Action Buttons -->
+<button id="submitBtn">Let's GO!</button>
+<button id="clearBtn">Clear Picks</button>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" id="closeModalBtn">×</span>
+
+    <h3>Confirm your details</h3>
+
+    <div id="confirmDetails" style="text-align:left; margin-top:10px;"></div>
+
+    <div class="modal-buttons" style="margin-top:20px;">
       <button id="confirmPaymentBtn">Confirm</button>
       <button id="cancelBtn">Cancel</button>
     </div>
   </div>
-
-  <div id="feedbackModal">
-  <h2 id="modalTitle"></h2>
-  <p id="modalMessage"></p>
-  <button id="modalCloseBtn">Close</button>
 </div>
 
-
-  <!-- Payment Result Modal -->
-  <div id="paymentResultModal">
-    <div class="modal-content result-modal">
-      <div id="paymentIcon"></div>
-      <h2 id="paymentResultTitle"></h2>
-      <p id="paymentResultMessage"></p>
-      <div id="paymentResultButtons"></div>
-    </div>
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="modal">
+  <div class="modal-content">
+    <h2 id="modalTitle"></h2>
+    <p id="modalMessage"></p>
+    <button id="modalCloseBtn">Close</button>
   </div>
+</div>
 
+<!-- Payment Result Modal -->
+<div id="paymentResultModal" class="modal">
+  <div class="modal-content result-modal">
+    
+    <div id="paymentIcon"></div>
+
+    <h2 id="paymentResultTitle"></h2>
+    <p id="paymentResultMessage"></p>
+
+    <div id="paymentResultButtons"></div>
+
+  </div>
+</div>
+  
 <script src="js/payment.js"></script>
 <script>
 /* ========================= THEME ========================= */
