@@ -141,6 +141,9 @@ const grid = document.getElementById("numberGrid");
 const selectedList = document.getElementById("selectedList");
 const totalValueEl = document.getElementById("totalValue");
 
+let backendLimits = {};
+const GLOBAL_LIMIT = 10;
+
 const numbers = Array.from({ length: 100 }, (_, i) => ({
   number: i + 1,
   globalCount: 0
@@ -148,14 +151,29 @@ const numbers = Array.from({ length: 100 }, (_, i) => ({
 
 const selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers") || "[]");
 
+async function loadBackendLimits() {
+  try {
+    const res = await fetch("https://nicket-backend.onrender.com/api/numbers/availability");
+    backendLimits = await res.json();
+
+    numbers.forEach(item => {
+      item.globalCount = backendLimits[item.number] || 0;
+    });
+
+    renderGrid();
+  } catch (err) {
+    console.error("Failed to load backend limits:", err);
+  }
+}
+
 function renderGrid() {
   grid.innerHTML = "";
   numbers.forEach(item => {
     const box = document.createElement("div");
     box.className = "number-box";
-    box.textContent = `${item.number} (${item.globalCount})`;
+    box.textContent = `${item.number}`;
 
-    if (item.globalCount >= 10) {
+    if (item.globalCount >= GLOBAL_LIMIT) {
       box.classList.add("disabled");
     } else {
       box.addEventListener("click", () => selectNumber(item));
@@ -166,7 +184,7 @@ function renderGrid() {
 }
 
 function selectNumber(item) {
-  if (item.globalCount >= 10) return;
+  if (item.globalCount >= GLOBAL_LIMIT) return;
   selectedNumbers.push(item.number);
   item.globalCount++;
   updateSelectedList();
@@ -183,6 +201,7 @@ function updateSelectedList() {
 
   Object.keys(countMap).forEach(n => {
     const span = document.createElement("span");
+    span.textContent = `${n}`;
     selectedList.appendChild(span);
   });
 
@@ -191,7 +210,9 @@ function updateSelectedList() {
 
 document.getElementById("clearBtn").addEventListener("click", () => {
   selectedNumbers.length = 0;
-  numbers.forEach(n => n.globalCount = 0);
+  numbers.forEach(item => {
+    item.globalCount = backendLimits[item.number] || 0;
+  });
   updateSelectedList();
   renderGrid();
   localStorage.setItem("selectedNumbers", JSON.stringify([]));
@@ -275,7 +296,7 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
 });
   
 updateSelectedList();
-renderGrid();
+loadBackendLimits();
 </script>
 </body>
 </html>
