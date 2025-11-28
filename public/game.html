@@ -155,7 +155,7 @@ function renderGrid() {
     box.className = "number-box";
     box.textContent = `${item.number} (${item.globalCount})`;
 
-    if (item.globalCount >= 10 || selectedNumbers.includes(item.number)) {
+    if (item.globalCount >= 10) {
       box.classList.add("disabled");
     } else {
       box.addEventListener("click", () => selectNumber(item));
@@ -166,7 +166,7 @@ function renderGrid() {
 }
 
 function selectNumber(item) {
-  if (item.globalCount >= 10 || selectedNumbers.includes(item.number)) return;
+  if (item.globalCount >= 10) return;
   selectedNumbers.push(item.number);
   item.globalCount++;
   updateSelectedList();
@@ -183,7 +183,6 @@ function updateSelectedList() {
 
   Object.keys(countMap).forEach(n => {
     const span = document.createElement("span");
-    span.textContent = `${n} (x${countMap[n]})`;
     selectedList.appendChild(span);
   });
 
