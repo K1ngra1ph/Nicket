@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (reference) {
       try {
         const { ok, data } = await payment_verify(reference);
-        if (ata && data.success === true) {
+        if (ok && data.success === true) {
           payment_showSuccess("Your payment was confirmed successfully 🎉");
         } else {
           window.location.href = `game.html?failed=true&paymentReference=${encodeURIComponent(reference)}`;
