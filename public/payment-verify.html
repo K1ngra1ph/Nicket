@@ -50,50 +50,44 @@
 <div class="loader"></div>
 <div class="text">Verifying your payment, please wait...</div>
 
+<script src="/js/payment.js"></script>
 <script>
-/**
- * Bridge page for payment verification
- * - Reads transactionReference from query
- * - Calls backend API to verify paymentReference
- * - Redirects immediately to index.html (success) or game.html (failure)
- */
-async function verifyPayment() {
-  const params = new URLSearchParams(window.location.search);
+  async function bridgeVerify() {
+    const params = new URLSearchParams(window.location.search);
+    const failedFlag = params.get("failed");
+    const trx = params.get("transactionReference");
 
-  // Step 1: Backend only sends transactionReference
-  const trx = params.get("transactionReference");
-
-  // Step 2: If no reference → fail-safe redirect to game.html
-  if (!trx) {
-    window.location.href = "/game.html?failed=true";
-    return;
-  }
-
-  // Step 3: Convert transactionReference → paymentReference for internal API
-  const paymentRef = trx;
-  window.history.replaceState({}, "", window.location.pathname + `?paymentReference=${encodeURIComponent(paymentRef)}`);
-
-  try {
-    // Step 4: Call backend verify API
-    const res = await fetch(`/api/payments/verify/${encodeURIComponent(paymentRef)}`);
-    const data = await res.json();
-
-    // Step 5: Redirect based on backend verification
-    if (res.ok && data && data.success === true) {
-      // Success → show modal on index.html
-      window.location.href = `/index.html?paymentReference=${encodeURIComponent(paymentRef)}`;
-    } else {
-      // Failure → show modal on game.html
-      window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
+    // If backend says failed, redirect immediately to failure modal
+    if (failedFlag === "true") {
+      window.location.href = `/game.html?failed=true`;
+      return;
     }
-  } catch (err) {
-    // Step 6: Network/server error → treat as failure
-    window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
-  }
-}
 
-// Run verification on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", verifyPayment);
+    if (!trx) {
+      // No reference → treat as failure
+      window.location.href = `/game.html?failed=true`;
+      return;
+    }
+
+    // Use payment.js API to verify via backend
+    try {
+      const verify = await payment_verify(trx);
+
+      if (verify.ok && verify.data && verify.data.success === true) {
+        // Payment successful → index.html will show success modal
+        window.location.href = `/index.html?paymentReference=${encodeURIComponent(trx)}`;
+      } else {
+        // Verification failed → redirect to failure modal
+        window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
+      }
+
+    } catch (err) {
+      // Network or other error → treat as failure
+      window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", bridgeVerify);
 </script>
 
 </body>
