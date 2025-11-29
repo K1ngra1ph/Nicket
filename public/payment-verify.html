@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verifying Payment...</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+      text-align: center;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .loader {
+      border: 6px solid var(--loader-bg);
+      border-top: 6px solid var(--loader-accent);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .text {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #0b0c10; color: white; }
+      :root {
+        --loader-bg: #1f2833;
+        --loader-accent: #66fcf1;
+      }
+    }
+
+    @media (prefers-color-scheme: light) {
+      body { background: #f5f5f5; color: #111; }
+      :root {
+        --loader-bg: #cfcfcf;
+        --loader-accent: #0077ff;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loader"></div>
+  <div class="text">Verifying your payment, please wait...</div>
+
+  <script>
+    async function verifyPayment() {
+      const params = new URLSearchParams(window.location.search);
+
+      // Monnify sends ?transactionReference=XXXX
+      let paymentRef = params.get("paymentReference");
+      const trx = params.get("transactionReference");
+
+      if (!paymentRef && trx) {
+        paymentRef = trx;
+        const newUrl = window.location.pathname + `?paymentReference=${encodeURIComponent(trx)}`;
+        window.history.replaceState({}, "", newUrl);
+      }
+
+      if (!paymentRef) {
+        // redirect to game.html to show failure modal
+        window.location.href = "/game.html?failed=true";
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(paymentRef)}`
+        );
+
+        const data = await res.json();
+
+        if (res.ok && data && data.success === true) {
+          // redirect to index.html and show success modal
+          window.location.href = `/index.html?paymentReference=${encodeURIComponent(paymentRef)}`;
+        } else {
+          // redirect to game.html and trigger failure modal
+          window.location.href = "/game.html?failed=true";
+        }
+
+      } catch (err) {
+        // Network error → treat as failure
+        window.location.href = "/game.html?failed=true";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", verifyPayment);
+  </script>
+
+</body>
+</html>
