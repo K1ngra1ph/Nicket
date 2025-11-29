@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verifying Payment...</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -55,15 +56,15 @@ async function verifyPayment() {
   const params = new URLSearchParams(window.location.search);
 
   // Backend only sends transactionReference
-  let trx = params.get("transactionReference");
+  const trx = params.get("transactionReference");
 
   if (!trx) {
-    // No reference → redirect to failure page
+    // No transaction reference → redirect to failure page
     window.location.href = "/game.html?failed=true";
     return;
   }
 
-  // Convert to paymentReference for existing API
+  // Convert transactionReference to paymentReference for existing API
   const paymentRef = trx;
   window.history.replaceState({}, "", window.location.pathname + `?paymentReference=${encodeURIComponent(paymentRef)}`);
 
@@ -74,18 +75,19 @@ async function verifyPayment() {
     const data = await res.json();
 
     if (res.ok && data && data.success === true) {
-      // Redirect to index.html → success modal
+      // SUCCESS → redirect to index.html, success modal will trigger
       window.location.href = `/index.html?paymentReference=${encodeURIComponent(paymentRef)}`;
     } else {
-      // Redirect to game.html → failure modal
+      // FAILURE → redirect to game.html with failure modal
       window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
     }
   } catch (err) {
-    // Network or server error → failure
+    // Network or server error → treat as failure
     window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
   }
 }
 
+// Run verification as soon as DOM is loaded
 document.addEventListener("DOMContentLoaded", verifyPayment);
 </script>
 
