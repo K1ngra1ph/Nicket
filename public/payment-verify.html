@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verifying Payment...</title>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -52,42 +51,48 @@
 <div class="text">Verifying your payment, please wait...</div>
 
 <script>
+/**
+ * Bridge page for payment verification
+ * - Reads transactionReference from query
+ * - Calls backend API to verify paymentReference
+ * - Redirects immediately to index.html (success) or game.html (failure)
+ */
 async function verifyPayment() {
   const params = new URLSearchParams(window.location.search);
 
-  // Backend only sends transactionReference
+  // Step 1: Backend only sends transactionReference
   const trx = params.get("transactionReference");
 
+  // Step 2: If no reference → fail-safe redirect to game.html
   if (!trx) {
-    // No transaction reference → redirect to failure page
     window.location.href = "/game.html?failed=true";
     return;
   }
 
-  // Convert transactionReference to paymentReference for existing API
+  // Step 3: Convert transactionReference → paymentReference for internal API
   const paymentRef = trx;
   window.history.replaceState({}, "", window.location.pathname + `?paymentReference=${encodeURIComponent(paymentRef)}`);
 
   try {
-    const res = await fetch(
-      `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(paymentRef)}`
-    );
+    // Step 4: Call backend verify API
+    const res = await fetch(`/api/payments/verify/${encodeURIComponent(paymentRef)}`);
     const data = await res.json();
 
+    // Step 5: Redirect based on backend verification
     if (res.ok && data && data.success === true) {
-      // SUCCESS → redirect to index.html, success modal will trigger
+      // Success → show modal on index.html
       window.location.href = `/index.html?paymentReference=${encodeURIComponent(paymentRef)}`;
     } else {
-      // FAILURE → redirect to game.html with failure modal
+      // Failure → show modal on game.html
       window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
     }
   } catch (err) {
-    // Network or server error → treat as failure
+    // Step 6: Network/server error → treat as failure
     window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
   }
 }
 
-// Run verification as soon as DOM is loaded
+// Run verification on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", verifyPayment);
 </script>
 
