@@ -1,61 +1,140 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Verifying Payment...</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    display: flex; align-items: center; justify-content: center;
-    height: 100vh; margin: 0; flex-direction: column; text-align: center;
-    transition: background 0.3s ease, color 0.3s ease;
-  }
-  .loader {
-    border: 6px solid var(--loader-bg);
-    border-top: 6px solid var(--loader-accent);
-    border-radius: 50%; width: 60px; height: 60px;
-    animation: spin 1s linear infinite; margin-bottom: 20px;
-  }
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  .text { font-size: 1.2rem; opacity: 0.9; }
-  @media (prefers-color-scheme: dark) { body { background: #0b0c10; color: white; } :root { --loader-bg: #1f2833; --loader-accent: #66fcf1; } }
-  @media (prefers-color-scheme: light) { body { background: #f5f5f5; color: #111; } :root { --loader-bg: #cfcfcf; --loader-accent: #0077ff; } }
-</style>
-</head>
-<body>
-
-<div class="loader"></div>
-<div class="text">Verifying your payment, please wait...</div>
-
-<script>
-async function verifyPayment() {
-  const params = new URLSearchParams(window.location.search);
-
-  // Get transactionReference from backend
-  const trx = params.get("transactionReference");
-  if (!trx) return window.location.href = "/game.html?failed=true";
-
-  // Convert to paymentReference for backend API
-  const paymentRef = trx;
-  window.history.replaceState({}, "", window.location.pathname + `?paymentReference=${encodeURIComponent(paymentRef)}`);
-
-  try {
-    const res = await fetch(`https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(paymentRef)}`);
-    const data = await res.json();
-
-    if (res.ok && data?.success === true) {
-      window.location.href = `/index.html?paymentReference=${encodeURIComponent(paymentRef)}`;
-    } else {
-      window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
-    }
-  } catch (err) {
-    window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentRef)}`;
-  }
+// payment.js
+function $id(id) {
+  return document.getElementById(id);
 }
 
-document.addEventListener("DOMContentLoaded", verifyPayment);
-</script>
+/* ========================= VERIFY PAYMENT (Backend) ========================= */
+async function payment_verify(reference) {
+  if (!reference) throw new Error("Missing reference");
 
-</body>
-</html>
+  const url = `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(reference)}`;
+  const res = await fetch(url);
+
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    return { ok: false, status: res.status, data: null };
+  }
+
+  return { ok: res.ok, status: res.status, data };
+}
+
+/* ========================= SUCCESS MODAL (index.html) ========================= */
+function payment_showSuccess(message = "Your payment was confirmed successfully 🎉") {
+  const modal = $id("successPaymentModal");
+  const msgEl = $id("paymentSuccessMessage");
+  const closeBtn = $id("closePaymentSuccess");
+  const okBtn = $id("paymentSuccessOk");
+
+  if (!modal) return;
+
+  if (msgEl) msgEl.textContent = message;
+
+  modal.classList.add("show");
+  modal.style.display = "flex";
+
+  const hide = () => {
+    modal.classList.remove("show");
+    modal.style.display = "none";
+  };
+
+  if (closeBtn) closeBtn.onclick = hide;
+  if (okBtn) okBtn.onclick = hide;
+}
+
+/* ========================= FAILURE MODAL (game.html) ========================= */
+function payment_showFailure(message = "Payment failed or could not be verified.") {
+  const modal = $id("paymentResultModal");
+  const title = $id("paymentResultTitle");
+  const msgEl = $id("paymentResultMessage");
+  const buttons = $id("paymentResultButtons");
+  const icon = $id("paymentIcon");
+
+  if (!modal) {
+    alert(message);
+    return;
+  }
+
+  if (title) title.textContent = "Payment Failed!";
+  if (msgEl) msgEl.textContent = message;
+
+  if (icon) {
+    icon.innerHTML = "❌";
+    icon.style.color = "#ef4444";
+  }
+
+  if (buttons) {
+    buttons.innerHTML = "";
+
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "accent";
+    retry.textContent = "Try Again";
+    retry.onclick = () => {
+      modal.style.display = "none";
+      const btn = $id("submitBtn");
+      if (btn) btn.click();
+      else window.location.reload();
+    };
+
+    const home = document.createElement("button");
+    home.type = "button";
+    home.className = "danger";
+    home.textContent = "Home";
+    home.onclick = () => (window.location.href = "/");
+
+    buttons.appendChild(retry);
+    buttons.appendChild(home);
+  }
+
+  modal.style.display = "flex";
+}
+
+/* ========================= AUTO VERIFY ON PAGE LOAD ========================= */
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  let paymentReference = params.get("paymentReference");
+  const failedFlag = params.get("failed");
+  const transactionReference = params.get("transactionReference");
+
+  // If backend says failed → show failure modal
+  if (failedFlag === "true") {
+    payment_showFailure("Payment failed or incomplete.");
+    return;
+  }
+
+  // If only transactionReference is provided → convert it to paymentReference
+  if (!paymentReference && transactionReference) {
+    try {
+      const res = await fetch(`https://nicket-backend.onrender.com/api/payments/get-payment-reference?transactionReference=${encodeURIComponent(transactionReference)}`);
+      const data = await res.json();
+      if (res.ok && data && data.paymentReference) {
+        paymentReference = data.paymentReference;
+        // Update URL for consistency
+        window.history.replaceState({}, "", `${window.location.pathname}?paymentReference=${encodeURIComponent(paymentReference)}`);
+      } else {
+        // Could not get paymentReference → failure
+        payment_showFailure("Unable to resolve payment reference.");
+        return;
+      }
+    } catch (err) {
+      payment_showFailure("Network error while resolving payment reference.");
+      return;
+    }
+  }
+
+  // If we have a paymentReference → verify
+  if (paymentReference) {
+    try {
+      const verify = await payment_verify(paymentReference);
+      if (verify.ok && verify.data && verify.data.success === true) {
+        payment_showSuccess("Payment verified successfully! 🎉");
+      } else {
+        payment_showFailure("Payment could not be verified.");
+      }
+    } catch (err) {
+      payment_showFailure("Unable to verify payment. Try again.");
+    }
+  }
+});
