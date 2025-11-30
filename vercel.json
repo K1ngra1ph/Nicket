@@ -6,8 +6,10 @@
     { "src": "^/$", "dest": "/public/index.html" },
 
     { "src": "^/game$", "dest": "/public/game.html" },
-
     { "src": "^/game\\.html$", "status": 301, "dest": "/game" },
+
+    { "src": "^/payment-verify$", "dest": "/public/payment-verify.html" },
+    { "src": "^/payment-verify\\.html$", "status": 301, "dest": "/payment-verify" },
 
     { "src": "/(.*)", "dest": "/public/$1" }
   ]
