@@ -8,87 +8,70 @@
     body {
       font-family: Arial, sans-serif;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
-      flex-direction: column;
       text-align: center;
-      transition: background 0.3s ease, color 0.3s ease;
     }
-
     .loader {
-      border: 6px solid var(--loader-bg);
-      border-top: 6px solid var(--loader-accent);
+      border: 6px solid #ccc;
+      border-top: 6px solid #0077ff;
       border-radius: 50%;
-      width: 60px;
-      height: 60px;
+      width: 55px;
+      height: 55px;
       animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    .text { font-size: 1.2rem; opacity: 0.9; }
-
     @media (prefers-color-scheme: dark) {
       body { background: #0b0c10; color: white; }
-      :root { --loader-bg: #1f2833; --loader-accent: #66fcf1; }
-    }
-
-    @media (prefers-color-scheme: light) {
-      body { background: #f5f5f5; color: #111; }
-      :root { --loader-bg: #cfcfcf; --loader-accent: #0077ff; }
+      .loader { border-color: #1f2833; border-top-color: #66fcf1; }
     }
   </style>
 </head>
+
 <body>
 
-<div class="loader"></div>
-<div class="text">Verifying your payment, please wait...</div>
+  <div class="loader"></div>
+  <div>Verifying your payment, please wait...</div>
 
-<script src="/js/payment.js"></script>
-<script>
-  async function bridgeVerify() {
-    const params = new URLSearchParams(window.location.search);
-    const failedFlag = params.get("failed");
-    const trx = params.get("transactionReference");
+  <script src="/js/payment.js"></script>
+  <script>
+    async function bridgeVerify() {
+      const params = new URLSearchParams(window.location.search);
+      const failed = params.get("failed");
+      const trx = params.get("transactionReference");
 
-    // If backend says failed, redirect immediately to failure modal
-    if (failedFlag === "true") {
-      window.location.href = `/game.html?failed=true`;
-      return;
-    }
-
-    if (!trx) {
-      // No reference → treat as failure
-      window.location.href = `/game.html?failed=true`;
-      return;
-    }
-
-    // Use payment.js API to verify via backend
-    try {
-      const verify = await payment_verify(trx);
-
-      if (verify.ok && verify.data && verify.data.success === true) {
-        // Payment successful → index.html will show success modal
-        window.location.href = `/index.html?paymentReference=${encodeURIComponent(trx)}`;
-      } else {
-        // Verification failed → redirect to failure modal
-        window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
+      if (failed === "true") {
+        window.location.href = `/game.html?failed=true`;
+        return;
+      }
+      if (!trx) {
+        window.location.href = `/game.html?failed=true`;
+        return;
       }
 
-    } catch (err) {
-      // Network or other error → treat as failure
-      window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
-    }
-  }
+      try {
+        const verify = await payment_verify(trx);
 
-  document.addEventListener("DOMContentLoaded", bridgeVerify);
-</script>
+        if (verify.ok && verify.data && verify.data.success === true) {
+          window.location.href = `/index.html?paymentReference=${encodeURIComponent(verify.data.paymentReference)}`;
+        } else {
+          window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
+        }
+
+      } catch (err) {
+        window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", bridgeVerify);
+  </script>
 
 </body>
 </html>
