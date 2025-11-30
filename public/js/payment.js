@@ -5,17 +5,26 @@ function $id(id) {
 /* ========================= VERIFY PAYMENT (Backend) ========================= */
 async function payment_verify(paymentReference) {
   if (!paymentReference) throw new Error("Missing paymentReference");
+  console.log("🔍 [DEBUG] Calling backend verify for:", paymentReference);
 
   const url = `https://nicket-backend.onrender.com/api/payments/verify/${encodeURIComponent(paymentReference)}`;
 
-  const res = await fetch(url);
-  const data = await res.json().catch(() => null);
+  try {
+    const res = await fetch(url);
+    const data = await res.json().catch(() => null);
 
-  return { ok: res.ok, status: res.status, data };
+    console.log("🔍 [DEBUG] Backend verify response:", data);
+
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    console.error("❌ [DEBUG] Error fetching payment verification:", err);
+    return { ok: false, status: 500, data: null };
+  }
 }
 
 /* ========================= SUCCESS MODAL ========================= */
 function payment_showSuccess(message = "Your payment was confirmed successfully 🎉") {
+  console.log("✅ [DEBUG] Showing success modal:", message);
   const modal = $id("successPaymentModal");
   const msgEl = $id("paymentSuccessMessage");
   const closeBtn = $id("closePaymentSuccess");
@@ -39,6 +48,7 @@ function payment_showSuccess(message = "Your payment was confirmed successfully 
 
 /* ========================= FAILURE MODAL ========================= */
 function payment_showFailure(message = "Payment failed or could not be verified.") {
+  console.log("❌ [DEBUG] Showing failure modal:", message);
   const modal = $id("paymentResultModal");
   const title = $id("paymentResultTitle");
   const msgEl = $id("paymentResultMessage");
@@ -85,7 +95,7 @@ function payment_showFailure(message = "Payment failed or could not be verified.
   modal.style.display = "flex";
 }
 
-/* ========================= BRIDGE VERIFICATION ========================= */
+/* ========================= BRIDGE VERIFICATION WITH RETRY ========================= */
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const failedFlag = params.get("failed");
@@ -97,10 +107,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // Resolve paymentReference if missing
   if (!paymentReference && transactionReference) {
     try {
+      console.log("🔍 [DEBUG] Resolving paymentReference from transactionReference:", transactionReference);
       const res = await fetch(`https://nicket-backend.onrender.com/api/payments/get-payment-reference?transactionReference=${encodeURIComponent(transactionReference)}`);
       const data = await res.json();
+      console.log("🔍 [DEBUG] get-payment-reference response:", data);
+
       if (res.ok && data && data.paymentReference) {
         paymentReference = data.paymentReference;
         window.history.replaceState({}, "", `${window.location.pathname}?paymentReference=${encodeURIComponent(paymentReference)}`);
@@ -109,21 +123,49 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
     } catch (err) {
+      console.error("❌ [DEBUG] Network error while resolving paymentReference:", err);
       payment_showFailure("Network error while resolving payment reference.");
       return;
     }
   }
 
-  if (paymentReference) {
+  if (!paymentReference) {
+    payment_showFailure("Payment reference is missing.");
+    return;
+  }
+
+  // Poll backend until payment is confirmed or fails
+  let attempts = 0;
+  const maxAttempts = 10;
+  const delay = 1500;
+
+  while (attempts < maxAttempts) {
     try {
+      console.log(`🔄 [DEBUG] Attempt ${attempts + 1} verifying payment...`);
       const verify = await payment_verify(paymentReference);
+
       if (verify.ok && verify.data && verify.data.success === true) {
-        payment_showSuccess("Payment verified successfully! 🎉");
+        const status = verify.data.paymentStatus?.toUpperCase();
+        console.log("🔍 [DEBUG] Current payment status:", status, verify.data.amountPaid);
+
+        if (status === "PAID" || status === "SUCCESSFUL") {
+          payment_showSuccess(`Payment verified successfully! 🎉 Amount: ₦${verify.data.amountPaid}`);
+          return;
+        } else if (status === "FAILED") {
+          payment_showFailure(`Payment failed. Amount: ₦${verify.data.amountPaid}`);
+          return;
+        }
       } else {
-        payment_showFailure("Payment could not be verified.");
+        console.warn("⚠️ [DEBUG] Backend verification not ready yet or invalid:", verify);
       }
     } catch (err) {
-      payment_showFailure("Unable to verify payment. Try again.");
+      console.error("❌ [DEBUG] Error during payment verification:", err);
     }
+
+    attempts++;
+    await new Promise(r => setTimeout(r, delay));
   }
+
+  // If after max attempts still pending
+  payment_showFailure("Payment could not be verified. Try again later.");
 });
