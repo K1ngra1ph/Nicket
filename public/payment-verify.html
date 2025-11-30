@@ -16,6 +16,7 @@
       background: #0b0c10;
       color: #fff;
     }
+
     .loader {
       width: 60px;
       height: 60px;
@@ -25,6 +26,7 @@
       animation: spin 1s linear infinite;
       margin-bottom: 16px;
     }
+
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
@@ -35,43 +37,67 @@
 
 <script src="/js/payment.js"></script>
 <script>
-  async function bridgeVerify() {
-    const params = new URLSearchParams(window.location.search);
-    const failed = params.get("failed");
-    const trx = params.get("transactionReference");
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const failedFlag = params.get("failed");
+  let paymentReference = params.get("paymentReference");
+  const transactionReference = params.get("transactionReference");
 
-    if (failed === "true") return window.location.href = `/game.html?failed=true`;
+  if (failedFlag === "true") {
+    return window.location.href = `/game.html?failed=true`;
+  }
 
-    if (!trx) return window.location.href = `/game.html?failed=true`;
-
+  if (!paymentReference && transactionReference) {
     try {
-      const refRes = await fetch(
-        `https://nicket-backend.onrender.com/api/payments/get-payment-reference?transactionReference=${encodeURIComponent(trx)}`
-      );
+      console.log("🔍 Resolving paymentReference from transactionReference:", transactionReference);
+      const res = await fetch(`https://nicket-backend.onrender.com/api/payments/get-payment-reference?transactionReference=${encodeURIComponent(transactionReference)}`);
+      const data = await res.json();
+      console.log("🔍 get-payment-reference response:", data);
 
-      const refData = await refRes.json();
-
-      if (!refRes.ok || !refData.paymentReference)
+      if (res.ok && data?.paymentReference) {
+        paymentReference = data.paymentReference;
+      } else {
         return window.location.href = `/game.html?failed=true`;
-
-      const paymentReference = refData.paymentReference;
-
-      const verify = await payment_verify(paymentReference);
-
-      if (verify.ok && verify.data?.paymentStatus === "SUCCESSFUL") {
-        return window.location.href =
-          `/index.html?paymentReference=${encodeURIComponent(paymentReference)}`;
       }
-
-      return window.location.href =
-        `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentReference)}`;
-
     } catch (err) {
+      console.error("❌ Network error while resolving paymentReference:", err);
       return window.location.href = `/game.html?failed=true`;
     }
   }
 
-  document.addEventListener("DOMContentLoaded", bridgeVerify);
+  if (!paymentReference) {
+    return window.location.href = `/game.html?failed=true`;
+  }
+
+  const maxAttempts = 10;
+  const delay = 1500;
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    try {
+      console.log(`🔄 Attempt ${attempts + 1} verifying payment...`);
+      const verify = await payment_verify(paymentReference);
+
+      if (verify.ok && verify.data?.success === true) {
+        const status = verify.data.paymentStatus?.toUpperCase();
+        console.log("🔍 Current payment status:", status);
+
+        if (status === "PAID" || status === "SUCCESSFUL") {
+          return window.location.href = `/index.html?paymentReference=${encodeURIComponent(paymentReference)}`;
+        } else if (status === "FAILED") {
+          return window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentReference)}`;
+        }
+      }
+    } catch (err) {
+      console.error("❌ Error during payment verification:", err);
+    }
+
+    attempts++;
+    await new Promise(r => setTimeout(r, delay));
+  }
+
+  return window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentReference)}`;
+});
 </script>
 
 </body>
