@@ -3,18 +3,13 @@ function $id(id) {
 }
 
 /* ========================= VERIFY PAYMENT (Backend) ========================= */
-async function payment_verify(reference) {
-  if (!reference) throw new Error("Missing reference");
+async function payment_verify(paymentReference) {
+  if (!paymentReference) throw new Error("Missing paymentReference");
 
-  const url = `https://nicket-backend.onrender.com/api/payments/verify-payment?reference=${encodeURIComponent(reference)}`;
+  const url = `https://nicket-backend.onrender.com/api/payments/verify/${encodeURIComponent(paymentReference)}`;
+
   const res = await fetch(url);
-
-  let data;
-  try {
-    data = await res.json();
-  } catch (e) {
-    return { ok: false, status: res.status, data: null };
-  }
+  const data = await res.json().catch(() => null);
 
   return { ok: res.ok, status: res.status, data };
 }
