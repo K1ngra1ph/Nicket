@@ -1,68 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self'; 
-        script-src 'self' 'unsafe-inline'; 
-        connect-src 'self' https://nicket-backend.onrender.com https://api.monnify.com; 
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
-        font-src https://fonts.gstatic.com; 
-        img-src 'self' data:;
-  ">
-  <title>NICKET Games</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  
-  <style>
-    :root { --bg:#fff9fc; --text:#1e293b; --accent:#2563eb; --accent-dark:#1e40af; --danger:#dc2626; --danger-dark:#b91c1c; --success:#16a34a; --card:#fff; }
-    body.dark { --bg:#2c2c2c; --text:#e2e8f0; --accent:#3b82f6; --accent-dark:#1d4ed8; --danger:#ef4444; --danger-dark:#b91c1c; --success:#22c55e; --card:#1e293b; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NICKET Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#fff9fc; --text:#1e293b; --accent:#2563eb; --accent-dark:#1e40af; --danger:#dc2626; --danger-dark:#b91c1c; --success:#16a34a; --card:#fff; }
+body.dark { --bg:#2c2c2c; --text:#e2e8f0; --accent:#3b82f6; --accent-dark:#1d4ed8; --danger:#ef4444; --danger-dark:#b91c1c; --success:#22c55e; --card:#1e293b; }
 
-    body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; text-align:center; color:var(--text); transition:background 0.3s,color 0.3s; }
-    .logo { position:fixed; top:30px; left:30px; width:120px; height:auto; z-index:2000; }
-    #themeToggle { position:fixed; top:20px; right:25px; background:transparent; color:var(--accent-dark); border:2px solid var(--accent-dark); border-radius:20px; padding:6px 12px; cursor:pointer; font-weight:600; transition:0.3s; }
-    #themeToggle:hover { background:var(--accent); color:white; }
+body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; text-align:center; color:var(--text); transition:background 0.3s,color 0.3s; }
+.logo { position:fixed; top:30px; left:30px; width:120px; height:auto; z-index:2000; }
+#themeToggle { position:fixed; top:20px; right:25px; background:transparent; color:var(--accent-dark); border:2px solid var(--accent-dark); border-radius:20px; padding:6px 12px; cursor:pointer; font-weight:600; transition:0.3s; }
+#themeToggle:hover { background:var(--accent); color:white; }
 
-    #numberGrid { display:grid; grid-template-columns:repeat(10,1fr); gap:10px; max-width:600px; margin:20px auto; }
-    .number-box { width:55px; height:55px; border-radius:8px; background:var(--accent); color:white; font-weight:600; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.2s; }
-    .number-box:hover { background:var(--accent-dark); transform:scale(1.05); }
-    .number-box.disabled { background:#9ca3af; cursor:not-allowed; transform:none; }
+#numberGrid { display:grid; grid-template-columns:repeat(10,1fr); gap:10px; max-width:600px; margin:20px auto; }
+.number-box { width:55px; height:55px; border-radius:8px; background:var(--accent); color:white; font-weight:600; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.2s; }
+.number-box:hover { background:var(--accent-dark); transform:scale(1.05); }
+.number-box.disabled { background:#9ca3af; cursor:not-allowed; transform:none; }
 
-    #selectedNumbers { margin-top:25px; padding:15px; background:var(--card); border-radius:10px; display:inline-block; min-width:320px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
-    #selectedNumbers span { margin:5px; background:var(--success); padding:8px 12px; color:white; border-radius:8px; font-weight:600; }
-    #totalValue { margin-top:10px; font-weight:600; color:var(--accent-dark); }
+#selectedNumbers { margin-top:25px; padding:15px; background:var(--card); border-radius:10px; display:inline-block; min-width:320px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+#selectedNumbers span { margin:5px; background:var(--success); padding:8px 12px; color:white; border-radius:8px; font-weight:600; }
+#totalValue { margin-top:10px; font-weight:600; color:var(--accent-dark); }
 
-    #clearBtn, #submitBtn { margin-top:20px; background:var(--accent); color:white; border:none; border-radius:8px; padding:12px 25px; font-size:16px; cursor:pointer; font-weight:600; transition:0.3s; }
-    #clearBtn { background:var(--danger); margin-left:10px; }
-    #clearBtn:hover { background:var(--danger-dark); }
-    #submitBtn:hover { background:var(--accent-dark); }
+#clearBtn, #submitBtn { margin-top:20px; background:var(--accent); color:white; border:none; border-radius:8px; padding:12px 25px; font-size:16px; cursor:pointer; font-weight:600; transition:0.3s; }
+#clearBtn { background:var(--danger); margin-left:10px; }
+#clearBtn:hover { background:var(--danger-dark); }
+#submitBtn:hover { background:var(--accent-dark); }
 
-    #confirmModal, #paymentResultModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:10000; }
-    .modal-content { background:var(--card); border-radius:12px; padding:25px; max-width:420px; text-align:center; position:relative; color:var(--text); box-shadow:0 4px 10px rgba(0,0,0,0.2); animation:popIn 0.3s ease; }
-    @keyframes popIn { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
-    @keyframes fadeIn { from {opacity:0} to {opacity:1} }
-    .close-modal { position:absolute; top:10px; right:15px; font-size:20px; cursor:pointer; }
-
-    #paymentResultModal { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); justify-content: center; align-items: center; z-index:10001; animation:fadeIn 0.3s ease; }
-    .result-modal { background: var(--card); border-radius: 16px; padding: 30px 25px; max-width: 400px; width: 90%; text-align: center; color: var(--text); box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation:popIn 0.3s ease; }
-
-    #paymentIcon { font-size: 50px; margin-bottom: 15px; }
-    #paymentResultTitle { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
-    #paymentResultMessage { font-size: 16px; color: var(--text); margin-bottom: 25px; }
-
-    #paymentResultButtons button { margin: 8px; padding: 12px 22px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 16px; transition: transform 0.2s, opacity 0.2s; }
-    #paymentResultButtons button:hover { transform: scale(1.05); opacity: 0.9; }
-    #paymentResultButtons .success { background: #22c55e; color:white; }
-    #paymentResultButtons .danger { background: #ef4444; color:white; }
-    #paymentResultButtons .accent { background: #3b82f6; color:white; }
-  </style>
+#confirmModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:10000; }
+.modal-content { background:var(--card); border-radius:12px; padding:25px; max-width:420px; text-align:center; position:relative; color:var(--text); box-shadow:0 4px 10px rgba(0,0,0,0.2); animation:popIn 0.3s ease; }
+@keyframes popIn { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+.close-modal { position:absolute; top:10px; right:15px; font-size:20px; cursor:pointer; }
+</style>
 </head>
-
 <body>
+
 <img src="assets/images/nicket-logo.png" class="logo" alt="Nicket Logo">
-
 <button id="themeToggle">🌙</button>
-
 <p>Hi, <strong id="userName"></strong>!</p>
 
 <!-- Number Grid -->
@@ -80,90 +55,56 @@
 <button id="clearBtn">Clear Picks</button>
 
 <!-- Confirmation Modal -->
-<div id="confirmModal" class="modal">
+<div id="confirmModal">
   <div class="modal-content">
     <span class="close-modal" id="closeModalBtn">×</span>
-
-    <h3>Confirm your details</h3>
-
+    <h3>Confirm your selections</h3>
     <div id="confirmDetails" style="text-align:left; margin-top:10px;"></div>
-
-    <div class="modal-buttons" style="margin-top:20px;">
-      <button id="confirmPaymentBtn">Confirm</button>
-      <button id="cancelBtn">Cancel</button>
+    <div style="margin-top:20px;">
+      <button id="closeConfirmBtn">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Payment Result Modal -->
-<div id="paymentResultModal" class="modal">
-  <div class="modal-content result-modal">
-    
-    <div id="paymentIcon"></div>
-
-    <h2 id="paymentResultTitle"></h2>
-    <p id="paymentResultMessage"></p>
-
-    <div id="paymentResultButtons"></div>
-
-  </div>
-</div>
-  
-<script src="js/payment.js"></script>
 <script>
-/* ========================= THEME ========================= */
+/* ===== THEME TOGGLE ===== */
 const themeToggle = document.getElementById("themeToggle");
 if (themeToggle) {
-  if (localStorage.getItem("theme") === "dark") {
-    document.body.classList.add("dark");
-    themeToggle.textContent = "🌙";
-  }
+  if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
+  themeToggle.textContent = document.body.classList.contains("dark") ? "🌙" : "☀️";
   themeToggle.addEventListener("click", () => {
     document.body.classList.toggle("dark");
-    const isDark = document.body.classList.contains("dark");
-    themeToggle.textContent = isDark ? "🌙" : "☀️";
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+    themeToggle.textContent = document.body.classList.contains("dark") ? "🌙" : "☀️";
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
   });
 }
 
-/* ========================= USER DATA ========================= */
+/* ===== USER DATA ===== */
 const userData = JSON.parse(localStorage.getItem("userData") || "{}");
 if (!userData.name) { 
   alert("Please register first."); 
   window.location.href = "/"; 
 }
-
 const { name, email, phone, eventValue } = userData;
 document.getElementById("userName").textContent = name;
 
-/* ========================= GAME LOGIC ========================= */
+/* ===== GAME LOGIC ===== */
 const grid = document.getElementById("numberGrid");
 const selectedList = document.getElementById("selectedList");
 const totalValueEl = document.getElementById("totalValue");
 
 let backendLimits = {};
 const GLOBAL_LIMIT = 10;
-
-const numbers = Array.from({ length: 100 }, (_, i) => ({
-  number: i + 1,
-  globalCount: 0
-}));
-
+const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
 const selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers") || "[]");
 
 async function loadBackendLimits() {
   try {
     const res = await fetch("https://nicket-backend.onrender.com/api/numbers/availability");
     backendLimits = await res.json();
-
-    numbers.forEach(item => {
-      item.globalCount = backendLimits[item.number] || 0;
-    });
-
+    numbers.forEach(item => item.globalCount = backendLimits[item.number] || 0);
     renderGrid();
-  } catch (err) {
-    console.error("Failed to load backend limits:", err);
-  }
+  } catch (err) { console.error("Failed to load backend limits:", err); renderGrid(); }
 }
 
 function renderGrid() {
@@ -171,14 +112,9 @@ function renderGrid() {
   numbers.forEach(item => {
     const box = document.createElement("div");
     box.className = "number-box";
-    box.textContent = `${item.number}`;
-
-    if (item.globalCount >= GLOBAL_LIMIT) {
-      box.classList.add("disabled");
-    } else {
-      box.addEventListener("click", () => selectNumber(item));
-    }
-
+    box.textContent = item.number;
+    if (item.globalCount >= GLOBAL_LIMIT) box.classList.add("disabled");
+    else box.addEventListener("click", () => selectNumber(item));
     grid.appendChild(box);
   });
 }
@@ -195,36 +131,29 @@ function selectNumber(item) {
 function updateSelectedList() {
   selectedList.innerHTML = "";
   const countMap = {};
-  selectedNumbers.forEach(n => {
-    countMap[n] = (countMap[n] || 0) + 1;
-  });
-
+  selectedNumbers.forEach(n => countMap[n] = (countMap[n] || 0) + 1);
   Object.keys(countMap).forEach(n => {
     const span = document.createElement("span");
-    span.textContent = `${n}`;
+    span.textContent = n;
     selectedList.appendChild(span);
   });
-
-  totalValueEl.textContent = `Total: ₦${(selectedNumbers.length * 1000).toLocaleString()}`;
+  totalValueEl.textContent = `Total: ₦${(selectedNumbers.length*1000).toLocaleString()}`;
 }
 
 document.getElementById("clearBtn").addEventListener("click", () => {
   selectedNumbers.length = 0;
-  numbers.forEach(item => {
-    item.globalCount = backendLimits[item.number] || 0;
-  });
+  numbers.forEach(item => item.globalCount = backendLimits[item.number] || 0);
   updateSelectedList();
   renderGrid();
   localStorage.setItem("selectedNumbers", JSON.stringify([]));
 });
 
-/* ========================= CONFIRM MODAL ========================= */
+/* ===== CONFIRM MODAL ===== */
 const confirmModal = document.getElementById("confirmModal");
 const submitBtn = document.getElementById("submitBtn");
 
 submitBtn.addEventListener("click", () => {
   if (!selectedNumbers.length) return alert("Select at least one number!");
-
   document.getElementById("confirmDetails").innerHTML = `
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email:</strong> ${email}</p>
@@ -237,66 +166,11 @@ submitBtn.addEventListener("click", () => {
 });
 
 document.getElementById("closeModalBtn").onclick =
-document.getElementById("cancelBtn").onclick =
+document.getElementById("closeConfirmBtn").onclick =
   () => confirmModal.style.display = "none";
 
-/* ========================= FAILURE DETECTOR (game.html only) ========================= */
-window.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(window.location.search);
-  const failed = params.get("failed");
-  const reference = params.get("paymentReference");
-
-  if (!failed || !reference) return;
-
-  try {
-    const { ok, data } = await payment_verify(reference);
-    const status = (data?.status || "").toString().toUpperCase();
-
-    if (data?.success === true && (status === "SUCCESS" || status === "SUCCESSFUL")) {
-      window.location.href = `index.html?paymentReference=${encodeURIComponent(reference)}`;
-      return;
-    }
-    const p = data?.data || {};
-    const amount = p?.amountPaid ?? p?.amount ?? 0;
-    const humanMsg = `Payment Reference: ${p?.paymentReference || reference}\nAmount Paid: ₦${Number(amount).toLocaleString()}\nStatus: ${data?.status || p?.status || "FAILED/UNKNOWN"}`;
-    payment_showFailure(humanMsg);
-  } catch (err) {
-    console.error("Failure verify error:", err);
-    payment_showFailure("Unable to verify payment. Try again.");
-  } finally {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-});
-
-/* ========================= INITIATE PAYMENT (confirmPaymentBtn) ========================= */
-document.getElementById("confirmPaymentBtn")?.addEventListener("click", async () => {
-  if (confirmModal) confirmModal.style.display = "none";
-  const totalAmount = selectedNumbers.length * 1000;
-
-  const numbersToSend = selectedNumbers.map(n => Number(n));
-  if (!numbersToSend.every(n => Number.isInteger (n) && n > 0)) {
-    return payment_showFailure("Invalid selected numbers.");
-  }
-
-  try {
-    const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue, selectedNumbers })
-    });
-
-    if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-    const data = await res.json();
-    if (!data.checkoutUrl) throw new Error("Missing checkout URL");
-    window.location.href = data.checkoutUrl;
-  } catch (err) {
-    console.error("Payment error:", err);
-    payment_showFailure("Unable to initialize payment. Try again.");
-  }
-});
-  
-updateSelectedList();
 loadBackendLimits();
+updateSelectedList();
 </script>
 </body>
 </html>
