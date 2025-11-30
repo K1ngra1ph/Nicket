@@ -26,8 +26,8 @@
     margin-bottom: 16px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-color-scheme: dark) { #paymentResultButtons .danger { background: gold; color: black; } }
 
-  /* Success Modal */
   #successPaymentModal {
     display: none;
     position: fixed;
@@ -52,7 +52,6 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
 
-  /* Failure Modal */
   #paymentResultModal {
     display: none;
     position: fixed;
@@ -105,7 +104,6 @@
 <div class="loader"></div>
 <div>Verifying your payment...</div>
 
-<!-- Success Modal -->
 <div id="successPaymentModal">
   <div class="success-modal">
     <h2>Payment Successful ✅</h2>
@@ -114,7 +112,6 @@
   </div>
 </div>
 
-<!-- Failure Modal -->
 <div id="paymentResultModal">
   <div class="result-modal">
     <div id="paymentIcon"></div>
@@ -196,7 +193,7 @@ function showSuccessModal(message) {
   msgEl.textContent = message;
   modal.style.display = "flex";
 
-  okBtn.onclick = () => window.location.href = "/index.html";
+  okBtn.onclick = () => window.location.href = "/";
 }
 
 function showFailureModal(message) {
@@ -215,7 +212,7 @@ function showFailureModal(message) {
   const retry = document.createElement("button");
   retry.className = "accent";
   retry.textContent = "Retry";
-  retry.onclick = () => window.location.href = "/game.html";
+  retry.onclick = () => window.location.href = "/game";
 
   const home = document.createElement("button");
   home.className = "danger";
