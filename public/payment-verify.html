@@ -6,72 +6,73 @@
   <title>Verifying Payment...</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      margin: 0;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
-      text-align: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background: #0b0c10;
+      color: #fff;
     }
     .loader {
-      border: 6px solid #ccc;
-      border-top: 6px solid #0077ff;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
-      width: 55px;
-      height: 55px;
+      border: 6px solid #1f2833;
+      border-top: 6px solid #66fcf1;
       animation: spin 1s linear infinite;
-      margin-bottom: 15px;
+      margin-bottom: 16px;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @media (prefers-color-scheme: dark) {
-      body { background: #0b0c10; color: white; }
-      .loader { border-color: #1f2833; border-top-color: #66fcf1; }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
-
 <body>
 
-  <div class="loader"></div>
-  <div>Verifying your payment, please wait...</div>
+<div class="loader"></div>
+<div>Verifying your payment...</div>
 
-  <script src="/js/payment.js"></script>
-  <script>
-    async function bridgeVerify() {
-      const params = new URLSearchParams(window.location.search);
-      const failed = params.get("failed");
-      const trx = params.get("transactionReference");
+<script src="/js/payment.js"></script>
+<script>
+  async function bridgeVerify() {
+    const params = new URLSearchParams(window.location.search);
+    const failed = params.get("failed");
+    const trx = params.get("transactionReference");
 
-      if (failed === "true") {
-        window.location.href = `/game.html?failed=true`;
-        return;
+    if (failed === "true") return window.location.href = `/game.html?failed=true`;
+
+    if (!trx) return window.location.href = `/game.html?failed=true`;
+
+    try {
+      const refRes = await fetch(
+        `https://nicket-backend.onrender.com/api/payments/get-payment-reference?transactionReference=${encodeURIComponent(trx)}`
+      );
+
+      const refData = await refRes.json();
+
+      if (!refRes.ok || !refData.paymentReference)
+        return window.location.href = `/game.html?failed=true`;
+
+      const paymentReference = refData.paymentReference;
+
+      const verify = await payment_verify(paymentReference);
+
+      if (verify.ok && verify.data?.paymentStatus === "SUCCESSFUL") {
+        return window.location.href =
+          `/index.html?paymentReference=${encodeURIComponent(paymentReference)}`;
       }
-      if (!trx) {
-        window.location.href = `/game.html?failed=true`;
-        return;
-      }
 
-      try {
-        const verify = await payment_verify(trx);
+      return window.location.href =
+        `/game.html?failed=true&paymentReference=${encodeURIComponent(paymentReference)}`;
 
-        if (verify.ok && verify.data && verify.data.success === true) {
-          window.location.href = `/index.html?paymentReference=${encodeURIComponent(verify.data.paymentReference)}`;
-        } else {
-          window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
-        }
-
-      } catch (err) {
-        window.location.href = `/game.html?failed=true&paymentReference=${encodeURIComponent(trx)}`;
-      }
+    } catch (err) {
+      return window.location.href = `/game.html?failed=true`;
     }
+  }
 
-    document.addEventListener("DOMContentLoaded", bridgeVerify);
-  </script>
+  document.addEventListener("DOMContentLoaded", bridgeVerify);
+</script>
 
 </body>
 </html>
