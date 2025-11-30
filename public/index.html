@@ -110,24 +110,17 @@
       transition: background 0.3s ease;
     }
 
-    #feedbackModal, #successPaymentModal {
-      display: none;
+    #feedbackModal {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
       justify-content: center;
       align-items: center;
+      background: rgba(0,0,0,0.5);
       z-index: 10000;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+      animation: fadeIn 0.3s ease;
     }
-
-    #feedbackModal.show, #successPaymentModal.show {
-      display: flex;
-      opacity: 1;
-    }
-
+    
     .modal-content {
       position: relative;
       background: var(--modal-bg);
@@ -227,7 +220,7 @@
 
   <button class="theme-toggle" id="themeToggle">☀️</button>
 
-  <div class="form-container">
+  <form class="form-container" id="registrationForm">
     <label>Name</label>
     <input type="text" id="name" placeholder="Enter your full name" required>
 
@@ -272,27 +265,6 @@
     </div>
   </div>
 
-  <!-- PAYMENT SUCCESS MODAL -->
-  <div id="successPaymentModal">
-    <div class="modal-content">
-      <button class="close-btn" id="closePaymentSuccess">✖</button>
-      <h3 id="paymentSuccessTitle">Payment Successful 🎉</h3>
-      <p id="paymentSuccessMessage">Your payment was completed successfully!</p>
-      <div style="margin-top:20px;">
-        <button class="modal-btn" id="paymentSuccessOk">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- success modal (index.html) -->
-  <div id="successPaymentModal" style="display:none">
-    <div class="modal-content">
-      <h3 id="paymentSuccessMessage"></h3>
-      <button id="closePaymentSuccess">Close</button>
-      <button id="paymentSuccessOk">OK</button>
-    </div>
-  </div>
-
   <footer>
     <a href="about.html">About Us</a> |
     <a href="privacy.html">Privacy Policy</a> |
@@ -303,28 +275,6 @@
 
 <script src="js/payment.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const reference = params.get("paymentReference");
-    if (reference) {
-      try {
-        const { ok, data } = await payment_verify(reference);
-        if (ok && data.success === true) {
-          payment_showSuccess("Your payment was confirmed successfully 🎉");
-        } else {
-          window.location.href = `game.html?failed=true&paymentReference=${encodeURIComponent(reference)}`;
-          return;
-        }
-      } catch (err) {
-        window.location.href = `game.html?failed=true&paymentReference=${encodeURIComponent(reference)}`;
-        return;
-      }
-    }
-  } catch (e) {
-    console.error("Index verification error:", e);
-  }
-  
   /* ===== THEME TOGGLE ===== */
   const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) {
