@@ -177,36 +177,30 @@ document.getElementById("closeModalBtn").onclick =
 document.getElementById("closeConfirmBtn").onclick =
   () => confirmModal.style.display = "none";
 
-/* ===== INITIATE MONNIFY PAYMENT ===== */
-confirmPaymentBtn.addEventListener("click", async () => {
-  confirmPaymentBtn.disabled = true;
-  confirmPaymentBtn.textContent = "Processing...";
+/* ========================= INITIATE PAYMENT (confirmPaymentBtn) ========================= */
+document.getElementById("confirmPaymentBtn")?.addEventListener("click", async () => {
+  if (confirmModal) confirmModal.style.display = "none";
+  const totalAmount = selectedNumbers.length * 1000;
+
+  const numbersToSend = selectedNumbers.map(n => Number(n));
+  if (!numbersToSend.every(n => Number.isInteger (n) && n > 0)) {
+    return payment_showFailure("Invalid selected numbers.");
+  }
 
   try {
-    const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate", {
+    const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: selectedNumbers.length * 1000,
-        name,
-        email,
-        phone,
-        selectedNumbers,
-        eventValue
-      })
+      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue, selectedNumbers })
     });
 
+    if (!res.ok) throw new Error(`Backend error: ${res.status}`);
     const data = await res.json();
-
-    if (!data.success) throw new Error(data.message || "Payment initiation failed");
-
+    if (!data.checkoutUrl) throw new Error("Missing checkout URL");
     window.location.href = data.checkoutUrl;
-
   } catch (err) {
-    console.error("❌ Payment Error:", err);
-    alert("Payment failed. Please try again.");
-    confirmPaymentBtn.disabled = false;
-    confirmPaymentBtn.textContent = "Confirm";
+    console.error("Payment error:", err);
+    payment_showFailure("Unable to initialize payment. Try again.");
   }
 });
 
