@@ -16,6 +16,7 @@
     background: #0b0c10;
     color: #fff;
   }
+
   .loader {
     width: 60px;
     height: 60px;
@@ -25,47 +26,22 @@
     animation: spin 1s linear infinite;
     margin-bottom: 16px;
   }
+
   @keyframes spin { to { transform: rotate(360deg); } }
-  @media (prefers-color-scheme: dark) { #paymentResultButtons .danger { background: gold; color: black; } }
 
-  #successPaymentModal {
+  .modal {
     display: none;
     position: fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
+    top:0; left:0;
+    width:100%; height:100%;
     background: rgba(0,0,0,0.5);
     backdrop-filter: blur(3px);
     justify-content: center;
     align-items: center;
     z-index:10001;
   }
-  .success-modal {
-    background: #111;
-    border-radius: 16px;
-    padding: 30px 25px;
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-    color: #fff;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  }
 
-  #paymentResultModal {
-    display: none;
-    position: fixed;
-    top:0;
-    left:0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(3px);
-    justify-content: center;
-    align-items: center;
-    z-index:10001;
-  }
-  .result-modal {
+  .success-modal, .result-modal {
     background: #111;
     border-radius: 16px;
     padding: 30px 25px;
@@ -90,13 +66,15 @@
     font-size: 16px;
     transition: transform 0.2s, opacity 0.2s;
   }
-  #paymentResultButtons button:hover {
-    transform: scale(1.05);
-    opacity: 0.9;
+  #paymentResultButtons button:hover { transform: scale(1.05); opacity: 0.9; }
+  #paymentResultButtons .success { background: #22c55e; color: white; }
+  #paymentResultButtons .accent { background: #3b82f6; color: white; }
+  #paymentResultButtons .danger {
+    background: #ef4444; color: white;
   }
-  #paymentResultButtons .success { background: #22c55e; color:white; }
-  #paymentResultButtons .danger { background: #ef4444; color:white; }
-  #paymentResultButtons .accent { background: #3b82f6; color:white; }
+  @media (prefers-color-scheme: dark) {
+    #paymentResultButtons .danger { background: gold; color: black; }
+  }
 </style>
 </head>
 <body>
@@ -104,7 +82,7 @@
 <div class="loader"></div>
 <div>Verifying your payment...</div>
 
-<div id="successPaymentModal">
+<div id="successPaymentModal" class="modal">
   <div class="success-modal">
     <h2>Payment Successful ✅</h2>
     <p id="paymentSuccessMessage"></p>
@@ -112,7 +90,7 @@
   </div>
 </div>
 
-<div id="paymentResultModal">
+<div id="paymentResultModal" class="modal">
   <div class="result-modal">
     <div id="paymentIcon"></div>
     <h2 id="paymentResultTitle"></h2>
@@ -129,8 +107,6 @@ async function bridgeVerify() {
   let paymentReference = params.get("paymentReference");
   const transactionReference = params.get("transactionReference");
 
-  console.log("🔍 Debug: Incoming params:", { failedFlag, paymentReference, transactionReference });
-
   if (failedFlag === "true") {
     showFailureModal("Payment failed or incomplete.");
     return;
@@ -140,7 +116,7 @@ async function bridgeVerify() {
     try {
       const res = await fetch(`https://nicket-backend.onrender.com/api/payments/get-payment-reference?transactionReference=${encodeURIComponent(transactionReference)}`);
       const data = await res.json();
-      if (res.ok && data && data.paymentReference) {
+      if (res.ok && data?.paymentReference) {
         paymentReference = data.paymentReference;
         window.history.replaceState({}, "", `${window.location.pathname}?paymentReference=${encodeURIComponent(paymentReference)}`);
       } else {
@@ -159,14 +135,11 @@ async function bridgeVerify() {
     return;
   }
 
-  let attempts = 0;
-  const maxAttempts = 10;
-  const delay = 1500;
-
+  let attempts = 0, maxAttempts = 10, delay = 1500;
   while (attempts < maxAttempts) {
     try {
       const verify = await payment_verify(paymentReference);
-      if (verify.ok && verify.data && verify.data.success === true) {
+      if (verify.ok && verify.data?.success) {
         const status = verify.data.paymentStatus?.toUpperCase();
         if (status === "PAID" || status === "SUCCESSFUL") {
           showSuccessModal(`Payment verified! 🎉 PaymentRef: ${paymentReference} Amount: ₦${verify.data.amountPaid}`);
@@ -177,7 +150,6 @@ async function bridgeVerify() {
         }
       }
     } catch(err) { console.error(err); }
-
     attempts++;
     await new Promise(r => setTimeout(r, delay));
   }
@@ -192,7 +164,6 @@ function showSuccessModal(message) {
 
   msgEl.textContent = message;
   modal.style.display = "flex";
-
   okBtn.onclick = () => window.location.href = "/";
 }
 
