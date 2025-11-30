@@ -106,8 +106,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     payment_showFailure("Payment failed or incomplete.");
     return;
   }
-
-  // Resolve paymentReference if missing
   if (!paymentReference && transactionReference) {
     try {
       console.log("🔍 [DEBUG] Resolving paymentReference from transactionReference:", transactionReference);
@@ -134,7 +132,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Poll backend until payment is confirmed or fails
   let attempts = 0;
   const maxAttempts = 10;
   const delay = 1500;
@@ -166,6 +163,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     await new Promise(r => setTimeout(r, delay));
   }
 
-  // If after max attempts still pending
   payment_showFailure("Payment could not be verified. Try again later.");
 });
