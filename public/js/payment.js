@@ -1,4 +1,3 @@
-// payment.js
 function $id(id) {
   return document.getElementById(id);
 }
@@ -20,7 +19,7 @@ async function payment_verify(reference) {
   return { ok: res.ok, status: res.status, data };
 }
 
-/* ========================= SUCCESS MODAL (index.html) ========================= */
+/* ========================= SUCCESS MODAL ========================= */
 function payment_showSuccess(message = "Your payment was confirmed successfully 🎉") {
   const modal = $id("successPaymentModal");
   const msgEl = $id("paymentSuccessMessage");
@@ -43,7 +42,7 @@ function payment_showSuccess(message = "Your payment was confirmed successfully 
   if (okBtn) okBtn.onclick = hide;
 }
 
-/* ========================= FAILURE MODAL (game.html) ========================= */
+/* ========================= FAILURE MODAL ========================= */
 function payment_showFailure(message = "Payment failed or could not be verified.") {
   const modal = $id("paymentResultModal");
   const title = $id("paymentResultTitle");
@@ -91,30 +90,26 @@ function payment_showFailure(message = "Payment failed or could not be verified.
   modal.style.display = "flex";
 }
 
-/* ========================= AUTO VERIFY ON PAGE LOAD ========================= */
+/* ========================= BRIDGE VERIFICATION ========================= */
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
-  let paymentReference = params.get("paymentReference");
   const failedFlag = params.get("failed");
+  let paymentReference = params.get("paymentReference");
   const transactionReference = params.get("transactionReference");
 
-  // If backend says failed → show failure modal
   if (failedFlag === "true") {
     payment_showFailure("Payment failed or incomplete.");
     return;
   }
 
-  // If only transactionReference is provided → convert it to paymentReference
   if (!paymentReference && transactionReference) {
     try {
       const res = await fetch(`https://nicket-backend.onrender.com/api/payments/get-payment-reference?transactionReference=${encodeURIComponent(transactionReference)}`);
       const data = await res.json();
       if (res.ok && data && data.paymentReference) {
         paymentReference = data.paymentReference;
-        // Update URL for consistency
         window.history.replaceState({}, "", `${window.location.pathname}?paymentReference=${encodeURIComponent(paymentReference)}`);
       } else {
-        // Could not get paymentReference → failure
         payment_showFailure("Unable to resolve payment reference.");
         return;
       }
@@ -124,7 +119,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // If we have a paymentReference → verify
   if (paymentReference) {
     try {
       const verify = await payment_verify(paymentReference);
