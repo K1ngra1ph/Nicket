@@ -245,9 +245,6 @@
     <label>Select Event</label>
     <select id="event" required>
       <option value="">-- Choose Event --</option>
-      <option value="Soakers" data-location="Tafawa Balewa Square, Lagos" data-date="Dec 15, 2025">Soakers</option>
-      <option value="Monochrome" data-location="The Palms, Victoria Island" data-date="Dec 8, 2025">Monochrome</option>
-      <option value="Vibe The Fest" data-location="Port Harcourt Stadium" data-date="Dec 20, 2025">Vibe The Fest</option>
     </select>
 
     <div id="eventDetails" style="margin-top:10px; font-size:15px; line-height:1.5;"></div>
@@ -299,12 +296,36 @@
   /* ===== EVENT SELECTION ===== */
   const eventSelect = document.getElementById("event");
   const eventDetails = document.getElementById("eventDetails");
+  
+  async function loadEvents() {
+    try {
+      const res = await fetch("nicket-backend.onrender.com/events");
+      const events = await res.json();
+
+      eventSelect.innerHTML = `<option value="">-- Choose Event --</option>`;
+
+      events.forEach(event => {
+        const option = document.createElement("option");
+        option.value = event._id;
+        option.textContent = event.name;
+        option.dataset.location = event.location;
+        option.dataset.date = event.date;
+        eventSelect.appendChild(option);
+      });
+    } catch (err) {
+      console.error("Error loading events", err);
+    }
+  }
+
+  loadEvents();
+
   if (eventSelect && eventDetails) {
     eventSelect.addEventListener("change", () => {
       const option = eventSelect.options[eventSelect.selectedIndex];
-      const loc = option.getAttribute("data-location");
-      const date = option.getAttribute("data-date");
-      eventDetails.innerHTML = eventSelect.value && loc && date
+      const loc = option.dataset.location;
+      const date = option.dataset.date;
+
+      eventDetails.innerHTML = 
         ? `<strong>📍 Location:</strong> ${loc}<br><strong>📅 Date:</strong> ${date}`
         : "";
     });
