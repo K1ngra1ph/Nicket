@@ -310,6 +310,8 @@
         option.textContent = event.name;
         option.dataset.location = event.location;
         option.dataset.date = event.date;
+        option.dataset.price = event.price;
+        option.dataset.currency = event.currency;
         eventSelect.appendChild(option);
       });
     } catch (err) {
@@ -384,8 +386,13 @@
       const email = document.getElementById('email').value.trim();
       const phone = document.getElementById('phone').value.trim();
       const countryCode = document.getElementById('countryCode').value.trim();
+      
       const selectedOption = eventSelect.options[eventSelect.selectedIndex];
-      const eventValue = selectedOption.textContent.trim();
+
+      const eventName = selectedOption.textContent.trim();
+      const eventId = selectedOption.value;
+      const price = selectedOption.dataset.price;
+      const currency = selectedOption.dataset.currency;
       
       if (!name || !email || !phone || !eventValue) {
         modalTitle.textContent = "Error";
@@ -394,6 +401,16 @@
         feedbackModal.classList.add("show");
         return;
       }
+
+      localStorage.setItem("userData", JSON.stringify({
+        name: name,
+        email: email,
+        phone: `${countryCode}${phone}`,
+        eventName: eventName,
+        eventValue: eventId,
+        price: Number(price),
+        currency: currency
+      }));
 
       showModal(name, eventValue, email, phone, countryCode);
     });
