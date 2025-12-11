@@ -86,11 +86,14 @@ if (themeToggle) {
 
 /* ===== USER DATA ===== */
 const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-if (!userData.name) { 
-  alert("Please register first."); 
+if (!userData.name || !userData.eventValue) { 
+  alert("Session expired. Please register first."); 
   window.location.href = "/"; 
 }
-const { name, email, phone, eventValue } = userData;
+const { name, email, phone, eventName, eventValue, price, currency } = userData;
+const TICKET_PRICE = price || 1000;
+const CURRENCY = currency || '₦';
+
 document.getElementById("userName").textContent = name;
 
 /* ===== GAME LOGIC ===== */
@@ -142,7 +145,8 @@ function updateSelectedList() {
     span.textContent = n;
     selectedList.appendChild(span);
   });
-  totalValueEl.textContent = `Total: ₦${(selectedNumbers.length*1000).toLocaleString()}`;
+  const total = selectedNumbers.length * TICKET_PRICE;
+  totalValueEl.textContent = `Total: ${CURRENCY}${total.toLocaleString()}`;
 }
 
 document.getElementById("clearBtn").addEventListener("click", () => {
@@ -160,14 +164,15 @@ const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
 
 submitBtn.addEventListener("click", () => {
   if (!selectedNumbers.length) return alert("Select at least one number!");
+  const total = selectedNumbers.length * TICKET_PRICE;
   
   document.getElementById("confirmDetails").innerHTML = `
     <p><strong>Name:</strong> ${name}</p>
     <p><strong>Email:</strong> ${email}</p>
     <p><strong>Phone:</strong> ${phone}</p>
-    <p><strong>Event:</strong> ${eventValue}</p>
+    <p><strong>Event:</strong> ${eventName}</p>
     <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
-    <p><strong>Total:</strong> ₦${(selectedNumbers.length*1000).toLocaleString()}</p>
+    <p><strong>Total:</strong> ${CURRENCY}${TICKET_PRICE.toLocaleString()}</p>
   `;
   
   confirmModal.style.display = "flex";
@@ -180,7 +185,7 @@ document.getElementById("closeConfirmBtn").onclick =
 /* ========================= INITIATE PAYMENT (confirmPaymentBtn) ========================= */
 document.getElementById("confirmPaymentBtn")?.addEventListener("click", async () => {
   if (confirmModal) confirmModal.style.display = "none";
-  const totalAmount = selectedNumbers.length * 1000;
+  const totalAmount = selectedNumbers.length * TICKET_PRICE;
 
   const numbersToSend = selectedNumbers.map(n => Number(n));
   if (!numbersToSend.every(n => Number.isInteger (n) && n > 0)) {
@@ -191,7 +196,7 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue, selectedNumbers })
+      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue: eventValue, selectedNumbers })
     });
 
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
