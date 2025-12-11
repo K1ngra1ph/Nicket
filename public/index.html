@@ -299,7 +299,7 @@
   
   async function loadEvents() {
     try {
-      const res = await fetch("nicket-backend.onrender.com/events?active=true");
+      const res = await fetch("https://nicket-backend.onrender.com/events?active=true");
       const events = await res.json();
 
       eventSelect.innerHTML = `<option value="">-- Choose Event --</option>`;
