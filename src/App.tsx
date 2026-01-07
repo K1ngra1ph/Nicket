@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import PrizeGrid from './components/PrizeGrid';
@@ -85,6 +86,9 @@ const App: React.FC = () => {
 
       {/* 5. Pass settings to ContactFloater */}
       {activeTab !== 'register' && <ContactFloater settings={siteSettings} />}
+
+      {/* Vercel Speed Insights */}
+      <SpeedInsights />
     </div>
   );
 };
