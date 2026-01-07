@@ -11,9 +11,24 @@ import ContactFloater from './components/ContactFloater';
 
 export type TabType = 'home' | 'how-it-works' | 'winning-number' | 'register';
 
+export interface GlobalSettings {
+  platformName: string;
+  supportEmail: string;
+  currency: string;
+  socials: {
+    twitter: string;
+    instagram: string;
+    facebook: string;
+    whatsapp: string;
+    phone: string;
+    email: string;
+  };
+}
+
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isDark, setIsDark] = useState(true);
+  const [siteSettings, setSiteSettings] = useState<GlobalSettings | null>(null);
 
   useEffect(() => {
     if (isDark) {
@@ -22,6 +37,21 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDark]);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          setSiteSettings(data);
+        }
+      } catch (error) {
+        console.error("Failed to load site settings", error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const toggleTheme = () => setIsDark(!isDark);
 
@@ -50,9 +80,11 @@ const App: React.FC = () => {
         {activeTab === 'register' && <Registration />}
       </main>
 
-      <Footer onNavigate={setActiveTab} activeTab={activeTab} />
+      {/* 4. Pass settings to Footer */}
+      <Footer onNavigate={setActiveTab} activeTab={activeTab} settings={siteSettings} />
 
-      {activeTab !== 'register' && <ContactFloater />}
+      {/* 5. Pass settings to ContactFloater */}
+      {activeTab !== 'register' && <ContactFloater settings={siteSettings} />}
     </div>
   );
 };

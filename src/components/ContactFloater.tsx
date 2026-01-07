@@ -1,30 +1,45 @@
-
 import React, { useState } from 'react';
 import { Phone, Mail, MessageCircle, X, MessageSquareText } from 'lucide-react';
+import { GlobalSettings } from '../App';
 
-const ContactFloater: React.FC = () => {
+interface ContactFloaterProps {
+  settings: GlobalSettings | null; 
+}
+
+const ContactFloater: React.FC<ContactFloaterProps> = ({ settings }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  if (!settings) return null;
+
+  const { socials, supportEmail } = settings;
 
   const contactOptions = [
     {
       icon: <Phone size={24} />,
       label: 'Call',
-      href: 'tel:+2348000000000',
+      href: `tel:${socials.phone}`,
       color: 'bg-blue-500',
+      visible: !!socials.phone
     },
     {
       icon: <Mail size={24} />,
       label: 'Email',
-      href: 'mailto:support@nicket.com',
+      // Prioritize explicit support email, fallback to generic email field
+      href: `mailto:${socials.email || supportEmail}`,
       color: 'bg-red-500',
+      visible: !!(socials.email || supportEmail)
     },
     {
       icon: <MessageCircle size={24} />,
       label: 'WhatsApp',
-      href: 'https://wa.me/2348000000000',
+      // Ensure whatsapp number format is clean for link
+      href: `https://wa.me/${socials.whatsapp?.replace('+', '')}`,
       color: 'bg-green-500',
+      visible: !!socials.whatsapp
     },
-  ];
+  ].filter(option => option.visible);
+
+  if (contactOptions.length === 0) return null;
 
   return (
     <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end gap-4">
