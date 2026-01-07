@@ -1,19 +1,49 @@
 {
   "builds": [
-    { "src": "public/**/*", "use": "@vercel/static" }
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "^/$", "dest": "/public/index.html" },
+    {
+      "src": "^/$",
+      "dest": "/public/index.html"
+    },
 
-    { "src": "^/regpage$", "dest": "/public/regpage.html" },
-    { "src": "^/regpage\\.html$", "status": 301, "dest": "/regpage" },
+    {
+      "src": "^/regpage$",
+      "dest": "/public/regpage.html"
+    },
+    {
+      "src": "^/regpage\\.html$",
+      "status": 301,
+      "headers": { "Location": "/regpage" }
+    },
 
-    { "src": "^/game$", "dest": "/public/game.html" },
-    { "src": "^/game\\.html$", "status": 301, "dest": "/game" },
+    {
+      "src": "^/game$",
+      "dest": "/public/game.html"
+    },
+    {
+      "src": "^/game\\.html$",
+      "status": 301,
+      "headers": { "Location": "/game" }
+    },
 
-    { "src": "^/payment-verify$", "dest": "/public/payment-verify.html" },
-    { "src": "^/payment-verify\\.html$", "status": 301, "dest": "/payment-verify" },
+    {
+      "src": "^/payment-verify$",
+      "dest": "/public/payment-verify.html"
+    },
+    {
+      "src": "^/payment-verify\\.html$",
+      "status": 301,
+      "headers": { "Location": "/payment-verify" }
+    },
 
-    { "src": "/(.*)", "dest": "/public/$1" }
+    {
+      "src": "^/(.*)$",
+      "dest": "/public/$1"
+    }
   ]
 }
