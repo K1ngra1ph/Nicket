@@ -9,6 +9,7 @@ interface HeroProps {
 interface HeroEvent {
   _id: string;
   name: string;
+  image?: string;
 }
 
 const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
@@ -39,8 +40,8 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
       {featured.length > 0 && (
         <div className="absolute left-[10%] top-1/4 hidden lg:block animate-float">
           <div className="w-48 h-60 bg-custom-card rounded-3xl p-4 border border-custom shadow-2xl rotate-[-12deg]">
-            <img 
-              src={`https://picsum.photos/seed/${featured[0]._id}/400/400`} 
+            <img
+              src={featured[0].image || `https://picsum.photos/seed/${featured[0]._id}/400/400`} 
               className="w-full h-full object-cover rounded-2xl" 
               alt={featured[0].name} 
             />
@@ -54,7 +55,7 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
         <div className="absolute right-[10%] bottom-1/4 hidden lg:block animate-float-delayed">
           <div className="w-48 h-60 bg-custom-card rounded-3xl p-4 border border-custom shadow-2xl rotate-[12deg]">
             <img 
-              src={`https://picsum.photos/seed/${featured[1]._id}/400/400`} 
+              src={featured[1].image || `https://picsum.photos/seed/${featured[1]._id}/400/400`} 
               className="w-full h-full object-cover rounded-2xl" 
               alt={featured[1].name} 
             />
@@ -107,4 +108,4 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   );
 };
 
-export default Hero
+export default Hero;

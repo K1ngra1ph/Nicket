@@ -17,6 +17,7 @@ interface BackendEvent {
   price: number;
   active: boolean;
   currency: string;
+  image?: string;
 }
 
 interface Prize {
@@ -107,7 +108,7 @@ const PrizeGrid: React.FC<PrizeGridProps> = ({ onNavigate }) => {
           id: event._id,
           title: event.name,
           category: event.location || "Online",
-          image: `https://picsum.photos/seed/${event._id}/600/600`, 
+          image: event.image || `https://picsum.photos/seed/${event._id}/600/600`, 
           
           entryFee: event.price || 1000,
           active: event.active
