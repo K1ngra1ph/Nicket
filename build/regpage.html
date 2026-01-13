@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NICKET Free VIP Tickets</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <meta name="description" content="Register for free to get VIP event tickets with Nicket and party across Nigeria. Play games to win backstage passes!">
+  <meta name="theme-color" content="#c1272d">
+
+  <style>
+    :root {
+      --bg-color: #fff9fc;
+      --text-color: #1e293b;
+      --card-bg: #fffdf8;
+      --border-color: #cbd5e1;
+      --modal-bg: #ffffff;
+      --modal-text: #f5f6f7;
+      --btn-bg: #c1272d;
+      --btn-text: #ffffff;
+      --footer-bg: #f1f5f9;
+    }
+
+    body.dark {
+      --bg-color: #2c2c2c;
+      --text-color: #e2e8f0;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --modal-bg: #1e293b;
+      --modal-text: #cbd5e1;
+      --btn-bg: #ffd700;
+      --btn-text: #1c1c1c;
+      --footer-bg: #1e293b;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .logo {
+      position: fixed;
+      top: 30px;
+      left: 30px;
+      width: 120px;
+      height: auto;
+      z-index: 2000;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 50px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: background 0.3s ease;
+      z-index: 2000;
+    }
+
+    .form-container {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 80px auto 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 15px;
+      background: var(--card-bg);
+      color: var(--text-color);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .phone-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .phone-group select { width: 30%; }
+    .phone-group input { width: 70%; }
+
+    button {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    #feedbackModal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    #feedbackModal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      position: relative;
+      background: var(--modal-bg);
+      border-radius: 12px;
+      padding: 25px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      animation: popIn 0.35s ease;
+      color: #000000;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      color: var(--modal-text);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .close-btn:hover { transform: scale(1.2); }
+
+    .modal-content h3 { margin: 0 0 10px; font-size: 20px; }
+
+    .modal-btn {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .modal-btn:hover { transform: scale(1.05); }
+
+    footer {
+      background: var(--footer-bg);
+      text-align: center;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 40px;
+      transition: background 0.3s ease;
+    }
+
+    footer a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-weight: 500;
+      margin: 0 10px;
+      transition: color 0.3s ease;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+      color: var(--btn-bg);
+    }
+
+    .contact-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-weight: 600;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 1000;
+      transition: transform 0.2s ease;
+    }
+
+    .contact-btn:hover { transform: scale(1.05); }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <img src="assets/images/nicket-logo.png" alt="Nicket Logo" class="logo">
+
+  <button class="theme-toggle" id="themeToggle">☀️</button>
+
+  <form class="form-container" id="registrationForm">
+    <label>Name</label>
+    <input type="text" id="name" placeholder="Enter your full name" required>
+
+    <label>Email</label>
+    <input type="email" id="email" placeholder="Enter your email" required>
+
+    <label>Phone Number</label>
+    <div class="phone-group">
+      <select id="countryCode" required>
+        <option value="234">+234</option>
+        <option value="1">+1</option>
+        <option value="44">+44</option>
+        <option value="233">+233</option>
+      </select>
+      <input type="tel" id="phone" placeholder="Enter your phone number" required>
+    </div>
+
+    <label>Select Event</label>
+    <select id="event" required>
+      <option value="">-- Choose Event --</option>
+    </select>
+
+    <div id="eventDetails" style="margin-top:10px; font-size:15px; line-height:1.5;"></div>
+
+    <div style="text-align:center; margin-top:20px;">
+      <button id="submitBtn" type="button">I Don Ready</button>
+    </div>
+  </form>
+
+  <!-- REGISTRATION MODAL -->
+  <div id="feedbackModal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeModalBtn">✖</button>
+      <h3 id="modalTitle">Notice</h3>
+      <p id="modalMessage">Please fill all fields before proceeding.</p>
+      <div style="margin-top:20px;">
+        <button class="modal-btn" id="modalCloseBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="about.html">About Us</a> |
+    <a href="privacy.html">Privacy Policy</a> |
+    <a href="terms.html">Terms & Conditions</a>
+  </footer>
+
+  <button class="contact-btn" onclick="window.location.href='contact.html'">Contact Us</button>
+
+<script>
+  /* ===== THEME TOGGLE ===== */
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) {
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      themeToggle.textContent = "🌙";
+    } else {
+      themeToggle.textContent = "☀️";
+    }
+
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      themeToggle.textContent = isDark ? "🌙" : "☀️";
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
+  }
+
+  /* ===== EVENT SELECTION ===== */
+  const eventSelect = document.getElementById("event");
+  const eventDetails = document.getElementById("eventDetails");
+  
+  async function loadEvents() {
+    try {
+      const res = await fetch("https://nicket-backend.onrender.com/events?active=true");
+      const events = await res.json();
+
+      eventSelect.innerHTML = `<option value="">-- Choose Event --</option>`;
+
+      events.forEach(event => {
+        const option = document.createElement("option");
+        option.value = event._id;
+        option.textContent = event.name;
+        option.dataset.location = event.location;
+        option.dataset.date = event.date;
+        option.dataset.price = event.price;
+        option.dataset.currency = event.currency;
+        eventSelect.appendChild(option);
+      });
+    } catch (err) {
+      console.error("Error loading events", err);
+    }
+  }
+
+  loadEvents();
+
+  if (eventSelect && eventDetails) {
+    eventSelect.addEventListener("change", () => {
+      const option = eventSelect.options[eventSelect.selectedIndex];
+      const loc = option.dataset.location;
+      const date = option.dataset.date;
+
+      eventDetails.innerHTML = option.value
+        ? `<strong>📍 Location:</strong> ${loc}<br><strong>📅 Date:</strong> ${date}`
+        : "";
+    });
+  }
+
+  /* ===== REGISTRATION MODAL ===== */
+  const feedbackModal = document.getElementById('feedbackModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalMessage = document.getElementById('modalMessage');
+  const modalCloseBtn = document.getElementById('modalCloseBtn');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+
+  function showModal(name, eventValue, email, phone, countryCode) {
+    if (!feedbackModal) return;
+
+    modalTitle.textContent = "Registration Successful 🎉";
+    modalMessage.innerHTML = `
+      <p>Thank you, <strong>${name}</strong>! You’ve successfully registered for
+      <strong>${eventValue}</strong>.</p>
+      <div style="background:#f1f5f9; padding:12px 15px; border-radius:8px; margin-top:15px; text-align:left;">
+        <h4 style="margin:0 0 8px;">🎮 Game Rules:</h4>
+        <ul style="background: #f1f5f9; margin:0; padding-left:20px; line-height:1.6;">
+          <li>Pick your numbers carefully — once submitted, you can’t change them.</li>
+          <li>Winners will be announced before the event day.</li>
+          <li>Ensure your contact details are correct to receive your VIP/Backstage ticket.</li>
+          <li>Incomplete or invalid registrations may be disqualified.</li>
+        </ul>
+      </div>
+      <p style="margin-top:18px;">Click <strong>OK</strong> to continue to the game page.</p>
+    `;
+
+    localStorage.setItem("userData", JSON.stringify({
+      name: name.trim(),
+      email: email.trim(),
+      phone: `${countryCode}${phone.trim()}`,
+      eventValue: eventValue.trim()
+    }));
+
+    feedbackModal.classList.add("show");
+  }
+
+  if (modalCloseBtn) modalCloseBtn.onclick = () => {
+    feedbackModal.classList.remove("show");
+    setTimeout(() => window.location.href = "game.html", 300);
+  };
+
+  if (closeModalBtn) closeModalBtn.onclick = () => feedbackModal.classList.remove("show");
+
+  /* ===== FORM SUBMISSION ===== */
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', e => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const countryCode = document.getElementById('countryCode').value.trim();
+      
+      const selectedOption = eventSelect.options[eventSelect.selectedIndex];
+
+      const eventName = selectedOption.textContent.trim();
+      const eventId = selectedOption.value;
+      const price = selectedOption.dataset.price;
+      const currency = selectedOption.dataset.currency;
+      
+      if (!name || !email || !phone || !eventValue) {
+        modalTitle.textContent = "Error";
+        modalTitle.style.color = "#dc2626";
+        modalMessage.textContent = "Please fill in all required fields.";
+        feedbackModal.classList.add("show");
+        return;
+      }
+
+      localStorage.setItem("userData", JSON.stringify({
+        name: name,
+        email: email,
+        phone: `${countryCode}${phone}`,
+        eventName: eventName,
+        eventValue: eventId,
+        price: Number(price),
+        currency: currency
+      }));
+
+      showModal(name, eventValue, email, phone, countryCode);
+    });
+  }
+</script>
+</body>
+</html>

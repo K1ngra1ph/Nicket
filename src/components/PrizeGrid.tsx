@@ -98,7 +98,7 @@ const PrizeGrid: React.FC<PrizeGridProps> = ({ onNavigate }) => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("/events"); 
+        const res = await fetch("/api/events"); 
         
         if (!res.ok) throw new Error("Failed to fetch");
         

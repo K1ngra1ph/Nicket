@@ -18,7 +18,7 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const res = await fetch('/events?active=true');
+        const res = await fetch('/api/events?active=true');
         if (res.ok) {
           const data = await res.json();
           setFeatured(data.slice(0, 2));
