@@ -42,7 +42,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('${API_BASE_URL}/api/settings');
+        const res = await fetch('https://nicket-backend.onrender.com/api/settings');
         if (res.ok) {
           const data = await res.json();
           setSiteSettings(data);

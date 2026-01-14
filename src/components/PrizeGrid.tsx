@@ -99,7 +99,7 @@ const PrizeGrid: React.FC<PrizeGridProps> = ({ onNavigate }) => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("${API_BASE_URL}/api/events"); 
+        const res = await fetch('https://nicket-backend.onrender.com/api/events'); 
         
         if (!res.ok) throw new Error("Failed to fetch");
         

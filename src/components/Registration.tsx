@@ -29,7 +29,7 @@ const Registration: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('${API_BASE_URL}/api/events?active=true');
+        const res = await fetch('https://nicket-backend.onrender.com/api/events?active=true');
         if (res.ok) {
           const data = await res.json();
           setEvents(data);

@@ -12,7 +12,7 @@ const WinningNumber: React.FC = () => {
     setErrorMessage('');
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/payments/verify/${ref}`);
+      const response = await fetch(`https://nicket-backend.onrender.com/api/payments/verify/${ref}`);
       const data = await response.json();
 
       if (!response.ok || !data.success) {
