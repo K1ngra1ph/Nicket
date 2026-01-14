@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, CheckCircle2, AlertCircle, Loader2, Database } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const WinningNumber: React.FC = () => {
   const [ticketId, setTicketId] = useState('');
@@ -11,7 +12,7 @@ const WinningNumber: React.FC = () => {
     setErrorMessage('');
     
     try {
-      const response = await fetch(`/api/payments/verify/${ref}`);
+      const response = await fetch(`${API_BASE_URL}/api/payments/verify/${ref}`);
       const data = await response.json();
 
       if (!response.ok || !data.success) {

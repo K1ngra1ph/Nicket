@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { TabType } from '../App';
+import { API_BASE_URL } from '../config';
 
 interface PrizeGridProps {
   onNavigate: (tab: TabType) => void;
@@ -98,7 +99,7 @@ const PrizeGrid: React.FC<PrizeGridProps> = ({ onNavigate }) => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("/api/events"); 
+        const res = await fetch("${API_BASE_URL}/api/events"); 
         
         if (!res.ok) throw new Error("Failed to fetch");
         
