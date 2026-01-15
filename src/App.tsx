@@ -12,6 +12,17 @@ import ContactFloater from './components/ContactFloater';
 
 export type TabType = 'home' | 'how-it-works' | 'winning-number' | 'register';
 
+export interface EventOption {
+  _id: string;
+  name: string;
+  location: string;
+  date: string;
+  price: number;
+  currency: string;
+  active: boolean;
+  image?: string;
+}
+
 export interface GlobalSettings {
   platformName: string;
   supportEmail: string;
@@ -30,6 +41,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isDark, setIsDark] = useState(true);
   const [siteSettings, setSiteSettings] = useState<GlobalSettings | null>(null);
+  const [globalEvents, setGlobalEvents] = useState<EventOption[]>([]);
 
   useEffect(() => {
     if (isDark) {
@@ -40,18 +52,27 @@ const App: React.FC = () => {
   }, [isDark]);
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const initAppData = async () => {
       try {
-        const res = await fetch('https://nicket-backend.onrender.com/api/settings');
-        if (res.ok) {
-          const data = await res.json();
-          setSiteSettings(data);
+        const [settingsRes, eventsRes] = await Promise.all([
+          fetch('https://nicket-backend.onrender.com/api/settings'),
+          fetch('https://nicket-backend.onrender.com/api/events')
+        ]);
+
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          setSiteSettings(settingsData);
+        }
+
+        if (eventsRes.ok) {
+          const eventsData = await eventsRes.json();
+          setGlobalEvents(eventsData);
         }
       } catch (error) {
-        console.error("Failed to load site settings", error);
+        console.error("Failed to load application data", error);
       }
     };
-    fetchSettings();
+    initAppData();
   }, []);
 
   const toggleTheme = () => setIsDark(!isDark);
@@ -69,7 +90,8 @@ const App: React.FC = () => {
         {activeTab === 'home' && (
           <>
             <Hero onNavigate={setActiveTab} />
-            <PrizeGrid onNavigate={setActiveTab} />
+            {/* Pass globalEvents to PrizeGrid */}
+            <PrizeGrid onNavigate={setActiveTab} events={globalEvents} /> 
             <FAQ />
           </>
         )}
@@ -78,16 +100,12 @@ const App: React.FC = () => {
         
         {activeTab === 'winning-number' && <WinningNumber />}
 
-        {activeTab === 'register' && <Registration />}
+        {/* Pass globalEvents to Registration */}
+        {activeTab === 'register' && <Registration events={globalEvents} />}
       </main>
 
-      {/* 4. Pass settings to Footer */}
       <Footer onNavigate={setActiveTab} activeTab={activeTab} settings={siteSettings} />
-
-      {/* 5. Pass settings to ContactFloater */}
       {activeTab !== 'register' && <ContactFloater settings={siteSettings} />}
-
-      {/* Vercel Speed Insights */}
       <SpeedInsights />
     </div>
   );

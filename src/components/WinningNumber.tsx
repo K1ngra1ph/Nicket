@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Search, CheckCircle2, AlertCircle, Loader2, Database } from 'lucide-react';
-import { API_BASE_URL } from '../config';
 
 const WinningNumber: React.FC = () => {
   const [ticketId, setTicketId] = useState('');
@@ -15,32 +14,37 @@ const WinningNumber: React.FC = () => {
       const response = await fetch(`https://nicket-backend.onrender.com/api/payments/verify/${ref}`);
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok) {
         setStatus('not_found');
-        setErrorMessage(data.message || "Record not found");
+        setErrorMessage(data.message || "Ticket not found in our database");
         return;
       }
-      const isPaid = data.paymentStatus === 'PAID' || data.paymentStatus === 'SUCCESSFUL';
+
+      const currentStatus = (data.status || data.paymentStatus || "").toLowerCase();
+      const isPaid = currentStatus === 'paid' || currentStatus === 'successful';
 
       if (isPaid) {
-        if (data.metaData?.winner === true || data.metaData?.winner === "true") {
+        const metadata = data.metadata || data.metaData || {};
+        const isWinner = metadata.winner === true || metadata.winner === "true";
+
+        if (isWinner) {
           setStatus('won');
         } else {
           setStatus('lost');
         }
       } 
-      else if (data.paymentStatus === 'PENDING') {
+      else if (currentStatus === 'pending') {
         setStatus('pending');
       } 
       else {
         setStatus('not_found');
-        setErrorMessage("Payment failed or invalid.");
+        setErrorMessage(`Entry is invalid. Payment status: ${currentStatus}`);
       }
 
     } catch (error) {
       console.error("Verification error:", error);
       setStatus('not_found');
-      setErrorMessage("Connection error. Please try again.");
+      setErrorMessage("Connection error. Please check your internet and try again.");
     }
   };
 
@@ -99,7 +103,6 @@ const WinningNumber: React.FC = () => {
         {/* Results Display */}
         <div className="mt-12 overflow-hidden transition-all duration-500 min-h-[160px] flex items-center justify-center">
           
-          {/* WINNER STATE */}
           {status === 'won' && (
             <div className="w-full relative p-8 rounded-[32px] text-center animate-in zoom-in slide-in-from-bottom-4 duration-500 border border-white/20 dark:border-white/10 shadow-2xl backdrop-blur-2xl bg-green-500/20 dark:bg-green-500/10">
               <div className="relative z-10">
@@ -117,7 +120,6 @@ const WinningNumber: React.FC = () => {
             </div>
           )}
 
-          {/* LOST / VALID TICKET STATE */}
           {status === 'lost' && (
             <div className="w-full relative p-8 rounded-[32px] text-center animate-in zoom-in slide-in-from-bottom-4 duration-500 border border-white/20 dark:border-white/10 shadow-2xl backdrop-blur-2xl bg-gray-500/10 dark:bg-white/5">
               <div className="relative z-10">
@@ -132,7 +134,6 @@ const WinningNumber: React.FC = () => {
             </div>
           )}
           
-          {/* PENDING STATE */}
           {status === 'pending' && (
             <div className="w-full relative p-8 rounded-[32px] text-center animate-in zoom-in slide-in-from-bottom-4 duration-500 border border-brand-light/20 shadow-2xl backdrop-blur-2xl bg-amber-500/10">
               <div className="relative z-10">
@@ -147,7 +148,6 @@ const WinningNumber: React.FC = () => {
             </div>
           )}
 
-          {/* NOT FOUND STATE */}
           {status === 'not_found' && (
             <div className="w-full relative p-8 rounded-[32px] text-center animate-in zoom-in slide-in-from-bottom-4 duration-500 border border-brand-light/20 shadow-2xl backdrop-blur-2xl bg-brand-light/10">
               <div className="relative z-10">

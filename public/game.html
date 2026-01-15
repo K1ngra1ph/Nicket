@@ -72,6 +72,14 @@ body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; tex
 </div>
 
 <script>
+localStorage.removeItem("selectedNumbers");
+
+/* ===== HELPER FUNCTIONS ===== */
+function payment_showFailure(message) {
+  console.error("Payment Process Error:", message);
+  alert("Payment Error: " + message);
+}
+
 /* ===== THEME TOGGLE ===== */
 const themeToggle = document.getElementById("themeToggle");
 if (themeToggle) {
@@ -104,11 +112,11 @@ const totalValueEl = document.getElementById("totalValue");
 let backendLimits = {};
 const GLOBAL_LIMIT = 10;
 const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
-const selectedNumbers = JSON.parse(localStorage.getItem("selectedNumbers") || "[]");
+const selectedNumbers = [];
 
 async function loadBackendLimits() {
   try {
-    const res = await fetch("https://nicket-backend.onrender.com/api/numbers/availability");
+    const res = await fetch(`https://nicket-backend.onrender.com/api/numbers/availability?eventId=${eventValue}`);
     backendLimits = await res.json();
     numbers.forEach(item => item.globalCount = backendLimits[item.number] || 0);
     renderGrid();
@@ -133,14 +141,11 @@ function selectNumber(item) {
   item.globalCount++;
   updateSelectedList();
   renderGrid();
-  localStorage.setItem("selectedNumbers", JSON.stringify(selectedNumbers));
 }
 
 function updateSelectedList() {
   selectedList.innerHTML = "";
-  const countMap = {};
-  selectedNumbers.forEach(n => countMap[n] = (countMap[n] || 0) + 1);
-  Object.keys(countMap).forEach(n => {
+  selectedNumbers.forEach(n => {
     const span = document.createElement("span");
     span.textContent = n;
     selectedList.appendChild(span);
@@ -154,7 +159,6 @@ document.getElementById("clearBtn").addEventListener("click", () => {
   numbers.forEach(item => item.globalCount = backendLimits[item.number] || 0);
   updateSelectedList();
   renderGrid();
-  localStorage.setItem("selectedNumbers", JSON.stringify([]));
 });
 
 /* ===== CONFIRM & PAY ===== */
@@ -172,7 +176,7 @@ submitBtn.addEventListener("click", () => {
     <p><strong>Phone:</strong> ${phone}</p>
     <p><strong>Event:</strong> ${eventName}</p>
     <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
-    <p><strong>Total:</strong> ${CURRENCY}${TICKET_PRICE.toLocaleString()}</p>
+    <p><strong>Total:</strong> ${CURRENCY}${total.toLocaleString()}</p>
   `;
   
   confirmModal.style.display = "flex";
@@ -182,26 +186,27 @@ document.getElementById("closeModalBtn").onclick =
 document.getElementById("closeConfirmBtn").onclick =
   () => confirmModal.style.display = "none";
 
-/* ========================= INITIATE PAYMENT (confirmPaymentBtn) ========================= */
+/* ========================= INITIATE PAYMENT ========================= */
 document.getElementById("confirmPaymentBtn")?.addEventListener("click", async () => {
   if (confirmModal) confirmModal.style.display = "none";
   const totalAmount = selectedNumbers.length * TICKET_PRICE;
 
   const numbersToSend = selectedNumbers.map(n => Number(n));
-  if (!numbersToSend.every(n => Number.isInteger (n) && n > 0)) {
-    return payment_showFailure("Invalid selected numbers.");
-  }
 
   try {
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue: eventValue, selectedNumbers })
+      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue: eventValue, selectedNumbers: numbersToSend })
     });
 
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
     const data = await res.json();
     if (!data.checkoutUrl) throw new Error("Missing checkout URL");
+
+    localStorage.removeItem("userData");
+    localStorage.removeItem("selectedNumbers");
+
     window.location.href = data.checkoutUrl;
   } catch (err) {
     console.error("Payment error:", err);
