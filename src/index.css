@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-color: #fff9fc;
+  --text-color: #1e293b;
+  --card-bg: #ffffff;
+  --border-color: #cbd5e1;
+  --btn-bg: #c1272d;
+  --btn-text: #ffffff;
+  --nav-bg: rgba(255, 249, 252, 0.9);
+}
+
+.dark {
+  --bg-color: #181818;
+  --text-color: #e2e8f0;
+  --card-bg: #222222;
+  --border-color: #334155;
+  --btn-bg: #ffd700;
+  --btn-text: #1c1c1c;
+  --nav-bg: rgba(24, 24, 24, 0.9);
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.font-albert { font-family: 'Albert Sans', sans-serif; }
+.font-passion { font-family: 'Passion One', cursive; }
+
+.bg-custom-card { background-color: var(--card-bg); }
+.border-custom { border-color: var(--border-color); }
+.bg-custom-btn { background-color: var(--btn-bg); color: var(--btn-text); }
+.bg-custom-nav { background-color: var(--nav-bg); }
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed { animation: float 8s ease-in-out infinite; animation-delay: 2s; }
