@@ -14,7 +14,6 @@ const Registration: React.FC<RegistrationProps> = ({ events }) => {
 
   useEffect(() => {
     localStorage.removeItem("userData");
-    
     const preSelectedId = localStorage.getItem("preSelectedEventId");
     if (preSelectedId && events.length > 0) {
       const foundEvent = events.find(ev => ev._id === preSelectedId);
@@ -51,13 +50,14 @@ const Registration: React.FC<RegistrationProps> = ({ events }) => {
 
   const proceedToGame = () => { 
     localStorage.removeItem("preSelectedEventId");
-    window.location.href = "game.html"; 
+    window.location.href = `game.html?event=${selectedEventId}`; 
   };
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-20 min-h-screen flex flex-col items-center">
       <div className="w-full max-w-lg bg-custom-card p-8 rounded-[32px] border border-custom shadow-xl">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <h2 className="text-center font-bold text-gray-400 uppercase tracking-widest text-xs mb-4">Registration Form</h2>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Name</label>
             <input type="text" required placeholder="Full Name" className="w-full p-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-custom focus:border-brand-light outline-none" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
@@ -65,7 +65,7 @@ const Registration: React.FC<RegistrationProps> = ({ events }) => {
 
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Email</label>
-            <input type="email" required placeholder="Email" className="w-full p-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-custom focus:border-brand-light outline-none" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+            <input type="email" required placeholder="Email Address" className="w-full p-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-custom focus:border-brand-light outline-none" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
           </div>
 
           <div>
@@ -80,24 +80,27 @@ const Registration: React.FC<RegistrationProps> = ({ events }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Event</label>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Select Active Event</label>
             <div className="relative">
-              <select required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-custom outline-none appearance-none" value={selectedEventId} onChange={handleEventChange}>
+              <select required className="w-full p-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-custom outline-none appearance-none font-bold" value={selectedEventId} onChange={handleEventChange}>
                 <option value="">-- Choose Event --</option>
                 {events.filter(e => e.active).map(ev => (
-                  <option key={ev._id} value={ev._id}>{ev.name} (₦{ev.price.toLocaleString()})</option>
+                  <option key={ev._id} value={ev._id}>{ev.name}</option>
                 ))}
               </select>
             </div>
             
+            {/* Detailed Metadata box matches EventManager */}
             {selectedEventDetails && (
-              <div className="mt-3 p-4 bg-brand-light/10 dark:bg-brand-dark/10 rounded-xl text-sm text-brand-light dark:text-brand-dark font-medium">
-                📍 {selectedEventDetails.location} | ₦{selectedEventDetails.price.toLocaleString()}
+              <div className="mt-3 p-5 bg-brand-light/10 dark:bg-brand-dark/10 rounded-2xl text-xs sm:text-sm text-brand-light dark:text-brand-dark font-bold leading-relaxed border border-brand-light/20">
+                <div className="mb-1">📍 LOCATION: {selectedEventDetails.location}</div> 
+                <div className="mb-1">📅 DATE: {selectedEventDetails.date}</div> 
+                <div>💰 TICKET: ₦{selectedEventDetails.price.toLocaleString()}</div>
               </div>
             )}
           </div>
 
-          <button type="submit" className="w-full py-4 bg-custom-btn text-white font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg flex justify-center items-center gap-2">I Don Ready <ArrowRight size={20} /></button>
+          <button type="submit" className="w-full py-4 bg-custom-btn text-white font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg flex justify-center items-center gap-2 uppercase">Proceed To Game <ArrowRight size={20} /></button>
         </form>
       </div>
 
@@ -105,12 +108,11 @@ const Registration: React.FC<RegistrationProps> = ({ events }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in zoom-in duration-300">
           <div className="bg-custom-card p-8 rounded-[32px] max-w-lg w-full text-center shadow-2xl relative border border-custom">
             <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"><X size={24} /></button>
-            <h3 className="text-2xl font-bold mb-4 text-green-600">Registration Successful 🎉</h3>
+            <h3 className="text-3xl font-black mb-4 text-green-600 uppercase italic">Ready! 🎉</h3>
             <div className="text-gray-700 dark:text-gray-300 mb-6 space-y-2">
-              <p>Thank you, <strong>{formData.name}</strong>!</p>
-              <p>You’ve registered for <span className="font-bold text-brand-light">{selectedEventDetails?.name}</span>.</p>
+              <p>Entry confirmed for <span className="font-bold text-brand-light">{selectedEventDetails?.name}</span>.</p>
             </div>
-            <button onClick={proceedToGame} className="w-full py-4 bg-custom-btn text-white font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg">OK, Let's Play!</button>
+            <button onClick={proceedToGame} className="w-full py-4 bg-custom-btn text-white font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg uppercase tracking-widest">OK, Let's Play!</button>
           </div>
         </div>
       )}

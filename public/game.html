@@ -38,7 +38,7 @@ body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; tex
 
 <img src="assets/images/nicket-logo.png" class="logo" alt="Nicket Logo">
 <button id="themeToggle">🌙</button>
-<p>Hi, <strong id="userName"></strong>!</p>
+<p>Hi, <strong id="userName">Player</strong>!</p>
 
 <!-- Number Grid -->
 <div id="numberGrid"></div>
@@ -47,7 +47,7 @@ body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; tex
 <div id="selectedNumbers">
   <strong>Your Selections:</strong>
   <div id="selectedList"></div>
-  <div id="totalValue">Total: ₦0</div>
+  <div id="totalValue">Loading pricing...</div>
 </div>
 
 <!-- Action Buttons -->
@@ -72,6 +72,11 @@ body { font-family:"Poppins",sans-serif; background:var(--bg); padding:30px; tex
 </div>
 
 <script>
+/* 1. DYNAMIC SESSION: Get the Event ID from the URL */
+const urlParams = new URLSearchParams(window.location.search);
+const dynamicEventId = urlParams.get('event');
+
+/* 2. SECURITY: Clear previous picks on reload */
 localStorage.removeItem("selectedNumbers");
 
 /* ===== HELPER FUNCTIONS ===== */
@@ -92,35 +97,58 @@ if (themeToggle) {
   });
 }
 
-/* ===== USER DATA ===== */
+/* ===== GLOBAL STATE ===== */
 const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-if (!userData.name || !userData.eventValue) { 
-  alert("Session expired. Please register first."); 
+if (!userData.name || !dynamicEventId) { 
+  alert("No active session found. Returning to home."); 
   window.location.href = "/"; 
 }
-const { name, email, phone, eventName, eventValue, price, currency } = userData;
-const TICKET_PRICE = price || 1000;
-const CURRENCY = currency || '₦';
 
-document.getElementById("userName").textContent = name;
-
-/* ===== GAME LOGIC ===== */
+const { name, email, phone } = userData;
+let TICKET_PRICE = 0;
+let EVENT_NAME = "";
+const CURRENCY = "₦";
+const selectedNumbers = [];
 const grid = document.getElementById("numberGrid");
 const selectedList = document.getElementById("selectedList");
 const totalValueEl = document.getElementById("totalValue");
 
+document.getElementById("userName").textContent = name;
+
+/* ===== SYNC WITH EVENT MANAGER ===== */
+async function syncEventData() {
+  try {
+    const res = await fetch(`https://nicket-backend.onrender.com/api/events`);
+    const allEvents = await res.json();
+    const currentEvent = allEvents.find(e => e._id === dynamicEventId);
+    
+    if (!currentEvent || !currentEvent.active) {
+      alert("This lottery is closed. Redirecting...");
+      window.location.href = "/";
+      return;
+    }
+
+    TICKET_PRICE = Number(currentEvent.price);
+    EVENT_NAME = currentEvent.name;
+    updateSelectedList();
+  } catch (err) {
+    console.error("Sync Error:", err);
+    alert("System error: Unable to verify prize details.");
+  }
+}
+
+/* ===== BACKEND LIMITS ===== */
 let backendLimits = {};
 const GLOBAL_LIMIT = 10;
 const numbers = Array.from({ length: 100 }, (_, i) => ({ number: i+1, globalCount: 0 }));
-const selectedNumbers = [];
 
 async function loadBackendLimits() {
   try {
-    const res = await fetch(`https://nicket-backend.onrender.com/api/numbers/availability?eventId=${eventValue}`);
+    const res = await fetch(`https://nicket-backend.onrender.com/api/numbers/availability?eventId=${dynamicEventId}`);
     backendLimits = await res.json();
     numbers.forEach(item => item.globalCount = backendLimits[item.number] || 0);
     renderGrid();
-  } catch (err) { console.error("Failed to load backend limits:", err); renderGrid(); }
+  } catch (err) { console.error("Failed to load limits:", err); renderGrid(); }
 }
 
 function renderGrid() {
@@ -156,15 +184,12 @@ function updateSelectedList() {
 
 document.getElementById("clearBtn").addEventListener("click", () => {
   selectedNumbers.length = 0;
-  numbers.forEach(item => item.globalCount = backendLimits[item.number] || 0);
-  updateSelectedList();
-  renderGrid();
+  loadBackendLimits();
 });
 
 /* ===== CONFIRM & PAY ===== */
 const confirmModal = document.getElementById("confirmModal");
 const submitBtn = document.getElementById("submitBtn");
-const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
 
 submitBtn.addEventListener("click", () => {
   if (!selectedNumbers.length) return alert("Select at least one number!");
@@ -172,11 +197,9 @@ submitBtn.addEventListener("click", () => {
   
   document.getElementById("confirmDetails").innerHTML = `
     <p><strong>Name:</strong> ${name}</p>
-    <p><strong>Email:</strong> ${email}</p>
-    <p><strong>Phone:</strong> ${phone}</p>
-    <p><strong>Event:</strong> ${eventName}</p>
-    <p><strong>Selected Numbers:</strong> ${selectedNumbers.join(", ")}</p>
-    <p><strong>Total:</strong> ${CURRENCY}${total.toLocaleString()}</p>
+    <p><strong>Prize:</strong> ${EVENT_NAME}</p>
+    <p><strong>Selection:</strong> ${selectedNumbers.join(", ")}</p>
+    <p style="font-size: 20px; color: #2563eb; margin-top: 15px;"><strong>TOTAL PAYABLE: ${CURRENCY}${total.toLocaleString()}</strong></p>
   `;
   
   confirmModal.style.display = "flex";
@@ -191,13 +214,18 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
   if (confirmModal) confirmModal.style.display = "none";
   const totalAmount = selectedNumbers.length * TICKET_PRICE;
 
-  const numbersToSend = selectedNumbers.map(n => Number(n));
-
   try {
     const res = await fetch("https://nicket-backend.onrender.com/api/payments/initiate-payment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, amount: totalAmount, eventValue: eventValue, selectedNumbers: numbersToSend })
+      body: JSON.stringify({ 
+        name, 
+        email, 
+        phone, 
+        amount: totalAmount, 
+        eventValue: dynamicEventId, 
+        selectedNumbers: selectedNumbers.map(n => Number(n)) 
+      })
     });
 
     if (!res.ok) throw new Error(`Backend error: ${res.status}`);
@@ -206,6 +234,7 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
 
     localStorage.removeItem("userData");
     localStorage.removeItem("selectedNumbers");
+    localStorage.removeItem("preSelectedEventId");
 
     window.location.href = data.checkoutUrl;
   } catch (err) {
@@ -214,8 +243,12 @@ document.getElementById("confirmPaymentBtn")?.addEventListener("click", async ()
   }
 });
 
-loadBackendLimits();
-updateSelectedList();
+/* INITIALIZE PAGE */
+async function init() {
+  await syncEventData();
+  await loadBackendLimits();
+}
+init();
 </script>
 </body>
 </html>

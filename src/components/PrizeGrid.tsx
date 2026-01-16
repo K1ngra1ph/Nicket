@@ -13,7 +13,7 @@ const PrizeCard: React.FC<{ prize: any, onNavigate: (tab: TabType) => void }> = 
     <div className="group bg-custom-card rounded-[32px] overflow-hidden border border-custom hover:border-brand-light dark:hover:border-brand-dark transition-all duration-300 flex flex-col h-full shadow-lg">
       <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800">
         <img src={prize.image} alt={prize.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-        <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-bold">
+        <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-bold uppercase tracking-widest">
           {prize.category}
         </div>
       </div>
@@ -33,11 +33,10 @@ const PrizeCard: React.FC<{ prize: any, onNavigate: (tab: TabType) => void }> = 
           ) : (
             <button 
               onClick={() => {
-                // SAVE SELECTION FOR REGISTRATION PAGE
                 localStorage.setItem("preSelectedEventId", prize.id);
                 onNavigate('register');
               }}
-              className="block w-full py-4 rounded-2xl bg-custom-btn font-bold transition-all transform active:scale-95 shadow-lg text-center hover:opacity-90"
+              className="block w-full py-4 rounded-2xl bg-custom-btn font-bold transition-all transform active:scale-95 shadow-lg text-center hover:opacity-90 uppercase tracking-wider"
             >
               Play2Win
             </button>
@@ -49,7 +48,6 @@ const PrizeCard: React.FC<{ prize: any, onNavigate: (tab: TabType) => void }> = 
 };
 
 const PrizeGrid: React.FC<PrizeGridProps> = ({ onNavigate, events }) => {
-  // Map the raw events into the Prize interface format
   const prizes = events.map((event) => ({
     id: event._id,
     title: event.name,
@@ -63,18 +61,20 @@ const PrizeGrid: React.FC<PrizeGridProps> = ({ onNavigate, events }) => {
     <section className="max-w-7xl mx-auto px-6 py-32">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
         <div>
-          <h2 className="text-5xl font-albert font-bold mb-4 italic">Prizes To Be Won</h2>
+          <h2 className="text-5xl font-albert font-bold mb-4 italic uppercase tracking-tighter">Prizes To Be Won</h2>
           <p className="text-xl text-gray-500 dark:text-gray-400">Exclusive items and experiences just a play away.</p>
+        </div>
+        
+        <div className="flex gap-4">
+          <button className="px-8 py-3 rounded-full bg-brand-light dark:bg-brand-dark text-white dark:text-black font-bold text-sm shadow-md">
+            {prizes.length} Events Available
+          </button>
         </div>
       </div>
 
-      {prizes.length === 0 ? (
-        <div className="text-center py-20 text-gray-400 animate-pulse">Loading amazing prizes...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {prizes.map(prize => <PrizeCard key={prize.id} prize={prize} onNavigate={onNavigate} />)}
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {prizes.map(prize => <PrizeCard key={prize.id} prize={prize} onNavigate={onNavigate} />)}
+      </div>
     </section>
   );
 };
