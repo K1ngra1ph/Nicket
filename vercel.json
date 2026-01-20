@@ -1,8 +1,7 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/game.html", "destination": "/game.html" },
+    { "source": "/payment-verify.html", "destination": "/payment-verify.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

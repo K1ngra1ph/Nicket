@@ -29,16 +29,13 @@ const WinningNumber: React.FC = () => {
         setTicketData(data);
         
         const metadata = data.metadata || data.metaData || {};
-        // Check if the backend has marked the draw as finished
         const isDrawn = data.eventDetails?.drawStatus === 'drawn';
 
         if (metadata.winner === true || metadata.winner === "true") {
           setStatus('won');
         } else if (metadata.winner === false || metadata.winner === "false" || isDrawn) {
-          // If explicitly false OR if the draw is finished and they aren't a winner
           setStatus('lost');
         } else {
-          // Metadata is missing and drawStatus is 'open'
           setStatus('waiting');
         }
       } else {
@@ -167,6 +164,15 @@ const WinningNumber: React.FC = () => {
                     }`}>
                         {status === 'won' ? "WON" : status === 'lost' ? "LOSE" : "WAITING"}
                     </span>
+                </div>
+
+
+                <div className="flex flex-wrap gap-2">
+                  {(ticketData.selectedNumbers || []).map((num: number, i: number) => (
+                    <span key={i} className="bg-custom-btn px-4 py-2 rounded-xl text-lg font-black shadow-lg min-w-[45px] text-center">
+                      {num}
+                    </span>
+                  ))}
                 </div>
 
                 <div className="pt-4">

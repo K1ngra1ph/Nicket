@@ -27,6 +27,7 @@ export interface GlobalSettings {
   platformName: string;
   supportEmail: string;
   currency: string;
+  maintenanceMode: boolean;
   socials: {
     twitter: string;
     instagram: string;
@@ -87,21 +88,43 @@ const App: React.FC = () => {
       />
       
       <main className="flex-grow pt-20">
-        {activeTab === 'home' && (
+        {/* MAINTENANCE MODE WALL */}
+        {siteSettings?.maintenanceMode && activeTab !== 'winning-number' ? (
+          <div className="h-[70vh] flex flex-col items-center justify-center text-center px-6 animate-in fade-in zoom-in duration-500">
+            <div className="w-20 h-20 bg-brand-light/10 rounded-3xl flex items-center justify-center mb-8">
+              <span className="text-4xl">🛠️</span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-albert font-black italic mb-6">
+              NICKET IS <span className="text-brand-light dark:text-brand-dark">UPGRADING</span>
+            </h1>
+            <p className="text-xl text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
+              We are performing scheduled maintenance to improve your winning experience. 
+              New entries are paused, but we'll be back shortly!
+            </p>
+            <button 
+              onClick={() => setActiveTab('winning-number')}
+              className="mt-10 px-8 py-4 bg-custom-btn rounded-full font-bold shadow-lg hover:scale-105 transition-transform"
+            >
+              Check Existing Tickets
+            </button>
+          </div>
+        ) : (
           <>
-            <Hero onNavigate={setActiveTab} />
-            {/* Pass globalEvents to PrizeGrid */}
-            <PrizeGrid onNavigate={setActiveTab} events={globalEvents} /> 
-            <FAQ />
+            {activeTab === 'home' && (
+              <>
+                <Hero onNavigate={setActiveTab} />
+                <PrizeGrid onNavigate={setActiveTab} events={globalEvents} /> 
+                <FAQ />
+              </>
+            )}
+
+            {activeTab === 'how-it-works' && <HowItWorks onNavigate={setActiveTab} />}
+            
+            {activeTab === 'winning-number' && <WinningNumber />}
+
+            {activeTab === 'register' && <Registration events={globalEvents} />}
           </>
         )}
-
-        {activeTab === 'how-it-works' && <HowItWorks onNavigate={setActiveTab} />}
-        
-        {activeTab === 'winning-number' && <WinningNumber />}
-
-        {/* Pass globalEvents to Registration */}
-        {activeTab === 'register' && <Registration events={globalEvents} />}
       </main>
 
       <Footer onNavigate={setActiveTab} activeTab={activeTab} settings={siteSettings} />
