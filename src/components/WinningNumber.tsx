@@ -106,27 +106,33 @@ const WinningNumber: React.FC = () => {
             <div className={`mb-8 p-8 rounded-3xl text-center border-2 ${
               status === 'won' 
               ? 'bg-green-500/10 border-green-500 text-green-500' 
+              : status === 'waiting'
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
               : status === 'lost'
               ? 'bg-rose-500/10 border-rose-500/30 text-rose-500'
-              : 'bg-amber-500/10 border-amber-500/30 text-amber-500'
+              : 'bg-gray-500/10 border-gray-500/30 text-gray-500'
             }`}>
-              {status === 'won' ? (
+              {status === 'won' && (
                 <>
                   <Trophy className="mx-auto mb-4 animate-bounce" size={56} />
                   <h3 className="text-3xl font-black uppercase italic tracking-tighter">You are a Winner!🏆</h3>
                   <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">Check your email for claim instructions</p>
                 </>
-              ) : status === 'lost' ? (
+              )}
+
+              {status === 'waiting' && (
                 <>
-                  <XCircle className="mx-auto mb-4" size={56} />
-                  <h3 className="text-3xl font-black uppercase italic tracking-tighter">No Win Recorded</h3>
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">This ticket did not match the draw</p>
+                <Hourglass className="mx-auto mb-4 animate-pulse" size={56} />
+                <h3 className="text-3xl font-black uppercase italic tracking-tighter">Awaiting Draw</h3>
+                <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">This ticket is active! Stay tuned for Draw Result.</p>
                 </>
-              ) : (
+              )}
+
+              {status === 'lost' && (
                 <>
-                  <Hourglass className="mx-auto mb-4 animate-pulse" size={56} />
-                  <h3 className="text-3xl font-black uppercase italic tracking-tighter">Draw Pending</h3>
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">The winner hasn't been picked yet. Good luck!</p>
+                <XCircle className="mx-auto mb-4" size={56} />
+                <h3 className="text-3xl font-black uppercase italic tracking-tighter">LOST</h3>
+                <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">Unfortunately, no win today. Better Luck, Tomorrow!</p>
                 </>
               )}
             </div>
@@ -136,12 +142,12 @@ const WinningNumber: React.FC = () => {
               <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-custom-card rounded-full border-r-2 border-custom"></div>
               <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-custom-card rounded-full border-l-2 border-custom"></div>
               
-              <h4 className="text-center font-black uppercase tracking-[0.3em] text-gray-400 text-[10px] mb-8">Nicket Official Entry Receipt</h4>
+              <h4 className="text-center font-black uppercase tracking-[0.3em] text-gray-400 text-[10px] mb-8">MY NICKET</h4>
               
               <div className="space-y-6 relative z-10">
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
                     <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><User size={14}/> Player</span>
-                    <span className="font-bold text-white">{ticketData.name || "Guest User"}</span>
+                    <span className="font-bold text-white">{ticketData.name || "Registered User"}</span>
                 </div>
 
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
@@ -151,32 +157,24 @@ const WinningNumber: React.FC = () => {
 
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
                     <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><Layout size={14}/> Event</span>
-                    <span className="font-bold text-white truncate max-w-[180px]">{ticketData.eventName || "Lottery Draw"}</span>
+                    <span className="font-bold text-white truncate max-w-[180px]">{ticketData.eventName || "Nicket Special"}</span>
                 </div>
 
                 {/* EXPLICIT DRAW RESULT ROW */}
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
-                    <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><Trophy size={14}/> Draw Result</span>
+                    <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><Trophy size={14}/>Result</span>
                     <span className={`font-black uppercase tracking-widest text-lg ${
                         status === 'won' ? 'text-green-500' : 
+                        status === 'waiting' ? 'text-amber-500' :
                         status === 'lost' ? 'text-rose-500' : 
-                        'text-amber-500'
+                        'text-gray-500'
                     }`}>
-                        {status === 'won' ? "WON" : status === 'lost' ? "LOSE" : "WAITING"}
+                        {status === 'won' ? "WON" : status === 'waiting' ? "WAITING" : status === 'lost' ? "LOSE" : "UNKNOWN"}
                     </span>
                 </div>
 
-
-                <div className="flex flex-wrap gap-2">
-                  {(ticketData.selectedNumbers || []).map((num: number, i: number) => (
-                    <span key={i} className="bg-custom-btn px-4 py-2 rounded-xl text-lg font-black shadow-lg min-w-[45px] text-center">
-                      {num}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="pt-4">
-                  <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase mb-4"><Hash size={14}/> Your Numbers</span>
+                <div className="pt-2">
+                  <span className="flex items-center gap-2 text-gray-400 text-xs font-bold uppercase mb-4"><Hash size={14}/> Your Number(s)</span>
                   <div className="flex flex-wrap gap-2">
                     {ticketData.selectedNumbers?.map((num: number, i: number) => (
                       <span key={i} className="bg-custom-btn px-4 py-2 rounded-xl text-lg font-black shadow-lg min-w-[45px] text-center">
