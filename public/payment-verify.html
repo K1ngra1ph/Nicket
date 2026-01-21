@@ -181,8 +181,8 @@
 
 <div class="loader-wrapper">
   <div class="loader"></div>
-  <div style="font-weight: 600; letter-spacing: 1px;">NICKET SECURITY</div>
-  <div id="statusText">Initiating bank verification...</div>
+  <div style="font-weight: 600; letter-spacing: 1px;">NICKET</div>
+  <div id="statusText">Payment Verification...</div>
   <div class="progress-container">
     <div id="progressFill" class="progress-fill"></div>
   </div>
@@ -272,15 +272,15 @@ async function bridgeVerify() {
       const response = await fetch(`${API_BASE}/payments/verify/${paymentReference}`);
       const data = await response.json();
 
-      if (response.ok) {
-        const status = (data.status || data.paymentStatus || "").toLowerCase();
+      if (response.ok && data.success) {
+        const currentStatus = (data.status || data.paymentStatus || "").toLowerCase();
         
-        if (status === "paid" || status === "successful") {
+        if (currentStatus === "paid" || currentStatus === "successful") {
           progressFill.style.width = `100%`;
-          setTimeout(() => showSuccessModal(paymentReference), 500);
+          setTimeout(() => showSuccessModal(paymentReference), 600);
           return;
-        } else if (status === "failed") {
-          showFailureModal("The bank reported a failure with this transaction.");
+        } else if (currentStatus === "failed") {
+          showFailureModal("Your bank or Monnify declined this payment.");
           return;
         }
       }
