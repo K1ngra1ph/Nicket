@@ -3,7 +3,7 @@ import { Search, CheckCircle2, Trophy, Loader2, Database, User, Layout, Hash, Ti
 
 const WinningNumber: React.FC = () => {
   const [ticketId, setTicketId] = useState('');
-  const [status, setStatus] = useState<'idle' | 'won' | 'lost' | 'not_found' | 'searching' | 'waiting'>('idle');
+  const [status, setStatus] = useState<'idle' | 'won' | 'lost' | 'not_found' | 'searching' | 'pending' | 'waiting'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [ticketData, setTicketData] = useState<any>(null);
 
@@ -38,7 +38,7 @@ const WinningNumber: React.FC = () => {
           setStatus('waiting');
         }
       } else {
-        setStatus('waiting');
+        setStatus('pending');
       }
     } catch (error) {
       console.error("Verification error:", error);
