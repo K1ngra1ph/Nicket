@@ -1,7 +1,7 @@
 {
   "rewrites": [
-    { "source": "/game.html", "destination": "/game.html" },
-    { "source": "/payment-verify.html", "destination": "/payment-verify.html" },
+    { "source": "/game", "destination": "/game.html" },
+    { "source": "/payment-verify", "destination": "/payment-verify.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
