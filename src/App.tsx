@@ -13,6 +13,13 @@ import ContactFloater from './components/ContactFloater';
 
 export type TabType = 'home' | 'how-it-works' | 'winning-number' | 'register';
 
+export interface Winner {
+  _id: string;
+  name: string;
+  eventName: string;
+  paymentReference: string;
+}
+
 export interface EventOption {
   _id: string;
   name: string;
@@ -44,6 +51,7 @@ const App: React.FC = () => {
   const [isDark, setIsDark] = useState(true);
   const [siteSettings, setSiteSettings] = useState<GlobalSettings | null>(null);
   const [globalEvents, setGlobalEvents] = useState<EventOption[]>([]);
+  const [globalWinners, setGlobalWinners] = useState<Winner[]>([]);
 
   useEffect(() => {
     if (isDark) {
@@ -56,22 +64,18 @@ const App: React.FC = () => {
   useEffect(() => {
     const initAppData = async () => {
       try {
-        const [settingsRes, eventsRes] = await Promise.all([
+        const [settingsRes, eventsRes, winnersRes] = await Promise.all([
           fetch('https://nicket-backend.onrender.com/api/settings'),
-          fetch('https://nicket-backend.onrender.com/api/events')
+          fetch('https://nicket-backend.onrender.com/api/events'),
+          fetch('https://nicket-backend.onrender.com/api/payments/recent-winners')
         ]);
 
-        if (settingsRes.ok) {
-          const settingsData = await settingsRes.json();
-          setSiteSettings(settingsData);
-        }
+        if (settingsRes.ok) setSiteSettings(await settingsRes.json());
+        if (eventsRes.ok) setGlobalEvents(await eventsRes.json());
+        if (winnersRes.ok) setGlobalWinners(await winnersRes.json());
 
-        if (eventsRes.ok) {
-          const eventsData = await eventsRes.json();
-          setGlobalEvents(eventsData);
-        }
       } catch (error) {
-        console.error("Failed to load application data", error);
+        console.error("Critical preloader sync failed", error);
       }
     };
     initAppData();
@@ -89,25 +93,13 @@ const App: React.FC = () => {
       />
       
       <main className="flex-grow pt-20">
-        {/* MAINTENANCE MODE WALL */}
         {siteSettings?.maintenanceMode && activeTab !== 'winning-number' ? (
           <div className="h-[70vh] flex flex-col items-center justify-center text-center px-6 animate-in fade-in zoom-in duration-500">
             <div className="w-20 h-20 bg-brand-light/10 rounded-3xl flex items-center justify-center mb-8">
               <span className="text-4xl">🛠️</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-albert font-black italic mb-6">
-              NICKET IS <span className="text-brand-light dark:text-brand-dark">UPGRADING</span>
-            </h1>
-            <p className="text-xl text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
-              We are performing scheduled maintenance to improve your winning experience. 
-              New entries are paused, but we'll be back shortly!
-            </p>
-            <button 
-              onClick={() => setActiveTab('winning-number')}
-              className="mt-10 px-8 py-4 bg-custom-btn rounded-full font-bold shadow-lg hover:scale-105 transition-transform"
-            >
-              Check Existing Tickets
-            </button>
+            <h1 className="text-4xl md:text-6xl font-albert font-black italic mb-6 uppercase">Upgrading...</h1>
+            <button onClick={() => setActiveTab('winning-number')} className="mt-10 px-8 py-4 bg-custom-btn rounded-full font-bold">Check My Ticket</button>
           </div>
         ) : (
           <>
@@ -115,14 +107,12 @@ const App: React.FC = () => {
               <>
                 <Hero onNavigate={setActiveTab} />
                 <PrizeGrid onNavigate={setActiveTab} events={globalEvents} /> 
-                <FAQ />
+                <FAQ winners={globalWinners} /> 
               </>
             )}
 
             {activeTab === 'how-it-works' && <HowItWorks onNavigate={setActiveTab} />}
-            
             {activeTab === 'winning-number' && <WinningNumber />}
-
             {activeTab === 'register' && <Registration events={globalEvents} />}
           </>
         )}
