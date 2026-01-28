@@ -13,13 +13,12 @@ interface NavbarProps {
 const NAV_ITEMS: { label: string; value: TabType }[] = [
   { label: 'Home', value: 'home' },
   { label: 'How It Works', value: 'how-it-works' },
-  { label: 'Winning Number', value: 'winning-number' },
+  { label: 'Check Nicket', value: 'winning-number' },
 ];
 
 const Navbar: React.FC<NavbarProps> = ({ onNavigate, activeTab, isDark, onToggleTheme }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Check if we are currently on the registration page
   const isRegistering = activeTab === 'register';
 
   const handleNavClick = (tab: TabType) => {
