@@ -28,15 +28,19 @@ const WinningNumber: React.FC = () => {
         setTicketData(data);
         
         const metadata = data.metadata || data.metaData || {};
+        const isWinner = metadata.winner === true || metadata.winner === "true";
         const isDrawn = data.eventDetails?.drawStatus === 'drawn';
 
-        if (metadata.winner === true || metadata.winner === "true") {
+        if (isWinner) {
           setStatus('won');
-        } else if (metadata.winner === false || metadata.winner === "false" || isDrawn) {
-          setStatus('lost');
-        } else {
+        } 
+        else if (!isDrawn) {
           setStatus('waiting');
+        } 
+        else {
+          setStatus('lost');
         }
+        
       } else {
         setStatus('pending');
       }
@@ -107,9 +111,7 @@ const WinningNumber: React.FC = () => {
               ? 'bg-green-500/10 border-green-500 text-green-500' 
               : status === 'waiting'
               ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
-              : status === 'lost'
-              ? 'bg-rose-500/10 border-rose-500/30 text-rose-500'
-              : 'bg-gray-500/10 border-gray-500/30 text-gray-500'
+              : 'bg-rose-500/10 border-rose-500/30 text-rose-500'
             }`}>
               {status === 'won' && (
                 <>
@@ -121,62 +123,60 @@ const WinningNumber: React.FC = () => {
 
               {status === 'waiting' && (
                 <>
-                <Hourglass className="mx-auto mb-4 animate-pulse" size={56} />
-                <h3 className="text-3xl font-black uppercase italic tracking-tighter">Awaiting Draw</h3>
-                <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">This ticket is active! Stay tuned for Draw Result.</p>
+                  <Hourglass className="mx-auto mb-4 animate-pulse" size={56} />
+                  <h3 className="text-3xl font-black uppercase italic tracking-tighter text-amber-600 dark:text-amber-400">Awaiting Draw</h3>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1 text-gray-500">Ticket Active: You haven't lost yet. Wait for results!</p>
                 </>
               )}
 
               {status === 'lost' && (
                 <>
-                <XCircle className="mx-auto mb-4" size={56} />
-                <h3 className="text-3xl font-black uppercase italic tracking-tighter">LOST</h3>
-                <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">Unfortunately, no win today. Better Luck, Tomorrow!</p>
+                  <XCircle className="mx-auto mb-4" size={56} />
+                  <h3 className="text-3xl font-black uppercase italic tracking-tighter">No Win Today</h3>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-1">Unfortunately, Better luck next time!</p>
                 </>
               )}
             </div>
 
-            {/* Official Digital Receipt Stub */}
             <div className="bg-gray-50 dark:bg-black/20 border-2 border-dashed border-custom p-8 rounded-[32px] relative overflow-hidden">
               <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-custom-card rounded-full border-r-2 border-custom"></div>
               <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-custom-card rounded-full border-l-2 border-custom"></div>
               
-              <h4 className="text-center font-black uppercase tracking-[0.3em] text-gray-400 text-[10px] mb-8">MY NICKET</h4>
+              <h4 className="text-center font-black uppercase tracking-[0.3em] text-gray-400 text-[10px] mb-8 text-wrap overflow-hidden">My NICKET</h4>
               
               <div className="space-y-6 relative z-10">
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
                     <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><User size={14}/> Player</span>
-                    <span className="font-bold text-white">{ticketData.name || "Registered User"}</span>
+                    <span className="font-bold text-white truncate max-w-[150px]">{ticketData.name || "Nicket User"}</span>
                 </div>
 
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
                     <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><Ticket size={14}/> Reference</span>
-                    <span className="font-mono font-bold text-brand-light dark:text-brand-dark">{ticketData.paymentReference}</span>
+                    <span className="font-mono font-bold text-brand-light dark:text-brand-dark text-[11px] sm:text-sm">{ticketData.paymentReference}</span>
                 </div>
 
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
-                    <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><Layout size={14}/> Event</span>
-                    <span className="font-bold text-white truncate max-w-[180px]">{ticketData.eventName || "Nicket Special"}</span>
+                    <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase shrink-0"><Layout size={14}/> Prize</span>
+                    <span className="font-bold text-white truncate max-w-[180px]">{ticketData.eventName || "Entry"}</span>
                 </div>
 
-                {/* EXPLICIT DRAW RESULT ROW */}
+                {/* DRAW RESULT ROW */}
                 <div className="flex justify-between items-center border-b border-custom/10 pb-3">
-                    <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><Trophy size={14}/>Result</span>
+                    <span className="flex items-center gap-2 text-gray-500 text-xs font-bold uppercase"><Trophy size={14}/> Final Status</span>
                     <span className={`font-black uppercase tracking-widest text-lg ${
                         status === 'won' ? 'text-green-500' : 
-                        status === 'waiting' ? 'text-amber-500' :
-                        status === 'lost' ? 'text-rose-500' : 
-                        'text-gray-500'
+                        status === 'waiting' ? 'text-amber-500' : 
+                        'text-rose-500'
                     }`}>
-                        {status === 'won' ? "WON" : status === 'waiting' ? "WAITING" : status === 'lost' ? "LOSE" : "UNKNOWN"}
+                        {status === 'won' ? "WON" : status === 'waiting' ? "WAITING" : "LOSE"}
                     </span>
                 </div>
 
                 <div className="pt-2">
-                  <span className="flex items-center gap-2 text-gray-400 text-xs font-bold uppercase mb-4"><Hash size={14}/> Your Number(s)</span>
+                  <span className="flex items-center gap-2 text-gray-400 text-xs font-bold uppercase mb-4"><Hash size={14}/> Lucky Number(s)</span>
                   <div className="flex flex-wrap gap-2">
                     {ticketData.selectedNumbers?.map((num: number, i: number) => (
-                      <span key={i} className="bg-custom-btn px-4 py-2 rounded-xl text-lg font-black shadow-lg min-w-[45px] text-center">
+                      <span key={i} className="bg-custom-btn px-4 py-2 rounded-xl text-lg font-black shadow-lg min-w-[45px] text-center border-none">
                         {num}
                       </span>
                     ))}
@@ -186,41 +186,6 @@ const WinningNumber: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* LOADING & ERROR STATES (Remain the same) */}
-        {status === 'searching' && (
-          <div className="mt-12 text-center py-10">
-            <Loader2 className="mx-auto mb-4 animate-spin text-brand-light" size={48} />
-            <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Accessing Secure Database...</p>
-          </div>
-        )}
-
-        {status === 'not_found' && (
-          <div className="mt-12 text-center p-8 bg-brand-light/10 border border-brand-light/20 rounded-3xl animate-in fade-in">
-             <Search className="mx-auto mb-4 text-brand-light opacity-50" size={48} />
-             <h3 className="text-xl font-bold text-brand-light uppercase">No Record Found</h3>
-             <p className="text-gray-500 text-sm mt-1">{errorMessage}</p>
-          </div>
-        )}
-
-        {status === 'pending' && (
-          <div className="mt-12 text-center p-8 bg-amber-500/10 border border-amber-500/20 rounded-3xl">
-             <Loader2 className="mx-auto mb-4 animate-spin text-amber-500" size={48} />
-             <h3 className="text-xl font-bold text-amber-500 uppercase">Payment Pending</h3>
-             <p className="text-gray-500 text-sm mt-1">We found your reference, but the bank is still processing. Try again in 2 minutes.</p>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-16 flex flex-wrap justify-center gap-12 text-center opacity-50">
-        <div className="flex flex-col items-center">
-          <span className="text-3xl font-black text-brand-light">100%</span>
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Verifiable Draws</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-3xl font-black text-brand-light">24/7</span>
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Auto Verification</span>
-        </div>
       </div>
     </div>
   );
