@@ -216,10 +216,10 @@ document.getElementById("submitBtn").onclick = () => {
   document.getElementById("confirmDetails").innerHTML = `
     <div style="display:flex; justify-content:space-between"><span>NAME:</span> <b>${name}</b></div>
     <div style="display:flex; justify-content:space-between"><span>PRIZE:</span> <b>${EVENT_NAME}</b></div>
-    <div style="display:flex; justify-content:space-between; margin-top:10px;"><span>ENTRIES:</span> <b>${selectedNumbers.length}</b></div>
+    <div style="display:flex; justify-content:space-between; margin-top:10px;"><span>SelectedNumber(s):</span> <b>${selectedNumbers.length}</b></div>
     <div style="word-break: break-all; margin-top:8px; font-family:monospace; font-size:11px; color:gray; line-height:1.4;">${displayNumbers.join(', ')}</div>
     <hr style="opacity:0.1; margin:15px 0;">
-    <div style="font-size: 20px; color: #2563eb; display:flex; justify-content:space-between"><span>PAYABLE:</span> <b>₦${total.toLocaleString()}</b></div>
+    <div style="font-size: 20px; color: #2563eb; display:flex; justify-content:space-between"><span>Amount:</span> <b>₦${total.toLocaleString()}</b></div>
   `;
   document.getElementById("confirmModal").style.display = "flex";
 };
